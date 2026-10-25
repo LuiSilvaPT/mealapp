@@ -12,15 +12,23 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
+	"crypto/sha1"
 	"embed"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"image"
+	"image/color"
+	"image/jpeg"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -652,6 +660,155 @@ func writeJSON(w http.ResponseWriter, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
+// ---- image proxy: fetch once, downscale, cache, serve small ----------------
+
+const imgCacheDir = "imgcache"
+const imgMaxSource = 6 << 20 // 6 MB cap on a source image
+
+var imgSem = make(chan struct{}, 8)
+
+func imgHandler(w http.ResponseWriter, r *http.Request) {
+	raw := r.URL.Query().Get("u")
+	width, _ := strconv.Atoi(r.URL.Query().Get("w"))
+	if width <= 0 || width > 1600 {
+		width = 360
+	}
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme != "https" || u.Host != "glovo.dhmedia.io" {
+		http.Error(w, "not allowed", http.StatusForbidden)
+		return
+	}
+	sum := sha1.Sum([]byte(u.String() + "|" + strconv.Itoa(width)))
+	name := hex.EncodeToString(sum[:]) + ".jpg"
+	path := filepath.Join(imgCacheDir, name)
+
+	if b, err := os.ReadFile(path); err == nil {
+		serveImg(w, r, name, b)
+		return
+	}
+
+	imgSem <- struct{}{}
+	defer func() { <-imgSem }()
+	if b, err := os.ReadFile(path); err == nil { // another request won the race
+		serveImg(w, r, name, b)
+		return
+	}
+
+	resp, err := client.Get(u.String())
+	if err != nil {
+		http.Error(w, "fetch failed", http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		http.Error(w, "upstream "+resp.Status, http.StatusBadGateway)
+		return
+	}
+	src, err := io.ReadAll(io.LimitReader(resp.Body, imgMaxSource))
+	if err != nil || len(src) == 0 {
+		http.Error(w, "read failed", http.StatusBadGateway)
+		return
+	}
+	decoded, _, err := image.Decode(bytes.NewReader(src))
+	if err != nil {
+		// not decodable: pass the original through rather than a broken tile
+		serveImg(w, r, name, src)
+		return
+	}
+	small := boxDownscale(decoded, width)
+	var buf bytes.Buffer
+	if err := jpeg.Encode(&buf, small, &jpeg.Options{Quality: 72}); err != nil {
+		http.Error(w, "encode failed", http.StatusInternalServerError)
+		return
+	}
+	out := buf.Bytes()
+	_ = os.MkdirAll(imgCacheDir, 0o755)
+	_ = os.WriteFile(path, out, 0o644)
+	serveImg(w, r, name, out)
+}
+
+func serveImg(w http.ResponseWriter, r *http.Request, name string, b []byte) {
+	w.Header().Set("Content-Type", "image/jpeg")
+	w.Header().Set("Cache-Control", "public, max-age=604800, immutable")
+	w.Header().Set("ETag", `"`+name+`"`)
+	if match := r.Header.Get("If-None-Match"); match != "" && strings.Contains(match, name) {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
+	_, _ = w.Write(b)
+}
+
+// boxDownscale averages source blocks, which is fast and clean for photos.
+func boxDownscale(src image.Image, width int) *image.RGBA {
+	b := src.Bounds()
+	sw, sh := b.Dx(), b.Dy()
+	if width >= sw || sw == 0 || sh == 0 {
+		if width >= sw {
+			width = sw
+		}
+	}
+	h := sh * width / sw
+	if h < 1 {
+		h = 1
+	}
+	dst := image.NewRGBA(image.Rect(0, 0, width, h))
+	for y := 0; y < h; y++ {
+		y0 := b.Min.Y + y*sh/h
+		y1 := b.Min.Y + (y+1)*sh/h
+		if y1 <= y0 {
+			y1 = y0 + 1
+		}
+		for x := 0; x < width; x++ {
+			x0 := b.Min.X + x*sw/width
+			x1 := b.Min.X + (x+1)*sw/width
+			if x1 <= x0 {
+				x1 = x0 + 1
+			}
+			var sr, sg, sb, sa, n uint32
+			for yy := y0; yy < y1; yy++ {
+				for xx := x0; xx < x1; xx++ {
+					cr, cg, cb, ca := src.At(xx, yy).RGBA()
+					sr += cr >> 8
+					sg += cg >> 8
+					sb += cb >> 8
+					sa += ca >> 8
+					n++
+				}
+			}
+			if n == 0 {
+				n = 1
+			}
+			dst.SetRGBA(x, y, color.RGBA{uint8(sr / n), uint8(sg / n), uint8(sb / n), uint8(sa / n)})
+		}
+	}
+	return dst
+}
+
+// ---- gzip for the text responses ------------------------------------------
+
+type gzipWriter struct {
+	http.ResponseWriter
+	gz *gzip.Writer
+}
+
+func (g *gzipWriter) Write(b []byte) (int, error) { return g.gz.Write(b) }
+
+func withGzip(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			next.ServeHTTP(w, r)
+			return
+		}
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Add("Vary", "Accept-Encoding")
+		w.Header().Del("Content-Length")
+		next.ServeHTTP(&gzipWriter{w, gz}, r)
+	})
+}
+
 // ---- handlers -----------------------------------------------------------------
 
 func handleProducts(w http.ResponseWriter, r *http.Request) {
@@ -800,15 +957,16 @@ func main() {
 		go refresh()
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/", withGzip(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)
 			return
 		}
 		b, _ := pageFS.ReadFile("index.html")
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache")
 		_, _ = w.Write(b)
-	})
+	})))
 	http.HandleFunc("/hero.jpg", func(w http.ResponseWriter, r *http.Request) {
 		b, err := pageFS.ReadFile("hero.jpg")
 		if err != nil {
@@ -816,13 +974,14 @@ func main() {
 			return
 		}
 		w.Header().Set("Content-Type", "image/jpeg")
-		w.Header().Set("Cache-Control", "public, max-age=86400")
+		w.Header().Set("Cache-Control", "public, max-age=604800, immutable")
 		_, _ = w.Write(b)
 	})
-	http.HandleFunc("/api/products", handleProducts)
-	http.HandleFunc("/api/sections", handleSections)
-	http.HandleFunc("/api/staples", handleStaples)
-	http.HandleFunc("/api/stats", handleStats)
+	http.HandleFunc("/img", imgHandler)
+	http.Handle("/api/products", withGzip(http.HandlerFunc(handleProducts)))
+	http.Handle("/api/sections", withGzip(http.HandlerFunc(handleSections)))
+	http.Handle("/api/staples", withGzip(http.HandlerFunc(handleStaples)))
+	http.Handle("/api/stats", withGzip(http.HandlerFunc(handleStats)))
 	http.HandleFunc("/api/refresh", handleRefresh)
 
 	addr := *host + ":" + strconv.Itoa(*port)
