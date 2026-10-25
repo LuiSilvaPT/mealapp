@@ -268,19 +268,36 @@ main{padding:var(--s9) 0 var(--s11)}
 .js .notice.show{opacity:1;pointer-events:auto}
 .notice button{background:var(--surface-2);color:var(--ink);font-weight:700;font-size:var(--fs-label);padding:var(--s1) var(--s3);border-radius:var(--r-xs);white-space:nowrap}
 
-/* dialogs */
-dialog{border:none;padding:0;border-radius:var(--r-lg);background:var(--surface);color:var(--ink);box-shadow:var(--shadow-2);max-width:480px;width:calc(100% - var(--s8))}
+/* dialogs: a real surface, sized to the viewport and scrollable inside */
+dialog{border:none;padding:0;border-radius:var(--r-lg);background:var(--surface);color:var(--ink);
+  box-shadow:var(--shadow-2);width:min(940px,calc(100vw - var(--s7)));
+  max-width:min(940px,calc(100vw - var(--s7)));max-height:min(88svh,780px);overflow:hidden}
+dialog[open]{display:flex;flex-direction:column}
 dialog::backdrop{background:var(--scrim)}
-.dlg{padding:var(--s7)}
-.dlg h3{font-family:var(--font-display);font-size:1.375rem;font-weight:600;margin:0 0 var(--s3)}
+.dlg{position:relative;display:flex;flex-direction:column;min-height:0;flex:1}
+.dlgclose{position:absolute;top:var(--s3);right:var(--s3);z-index:3;width:36px;height:36px;display:grid;place-items:center;
+  border-radius:var(--r-sm);background:var(--surface);color:var(--ink-2);box-shadow:var(--shadow-1)}
+.dlgclose:hover{background:var(--surface-2);color:var(--ink)}
+.dlggrid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);min-height:0;flex:1;overflow:hidden}
+.dlgmedia{margin:0;background:var(--surface-2);min-height:0;overflow:hidden}
+.dlgmedia img{width:100%;height:100%;object-fit:cover;display:block}
+.dlgbody{padding:var(--s8) var(--s7) var(--s7);overflow:auto;min-height:0}
+@media (max-width:760px){
+  dialog{width:calc(100vw - var(--s5));max-height:92svh}
+  .dlggrid{grid-template-columns:minmax(0,1fr);overflow:auto}
+  .dlgmedia img{height:auto;aspect-ratio:16/9}
+  .dlgbody{padding:var(--s5)}
+}
+.dlg h3{font-family:var(--font-display);font-size:1.5rem;font-weight:600;margin:0 0 var(--s3);text-wrap:balance}
 .dlg p{margin:0 0 var(--s5);font-size:var(--fs-small);color:var(--ink-2);line-height:1.6}
 .dlg .used{background:var(--paper);border-radius:var(--r-md);padding:var(--s4);margin-bottom:var(--s5)}
 .dlg .used .k{font-size:var(--fs-label);color:var(--ink-3);margin-bottom:var(--s2)}
 .dlg .used ul{margin:0;padding-left:var(--s5)}
 .dlg .used li{font-size:var(--fs-small);color:var(--ink-2)}
-.dlg .prod{display:flex;align-items:center;justify-content:space-between;gap:var(--s4);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--s4);margin-bottom:var(--s5)}
+.dlg .prod{display:flex;align-items:center;gap:var(--s4);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--s4);margin-bottom:var(--s5)}
+.dlg .prod .pp{font-size:var(--fs-body);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:auto}
 .dlg .prod .pn{font-size:var(--fs-small);font-weight:600;min-width:0}
-.dlg .prod .pp{font-size:var(--fs-body);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dlg .prod .ps{display:block;font-size:var(--fs-label);color:var(--ink-3)}
 .dlg .actions{display:flex;flex-direction:column;gap:var(--s2)}
 .dlg .actions button{width:100%;justify-content:center;padding:var(--s3) var(--s4);border-radius:var(--r-md);
   border:1px solid var(--line-strong);background:var(--surface);font-size:var(--fs-small);font-weight:600}
@@ -288,11 +305,12 @@ dialog::backdrop{background:var(--scrim)}
 .dlg .actions button.go{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .dlg .actions button.go:hover{background:var(--accent-deep);border-color:var(--accent-deep)}
 .dlg .actions button.quiet{border-color:transparent;background:none;color:var(--ink-3);font-weight:500}
-.kitchen{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2);margin-bottom:var(--s5);max-height:44vh;overflow:auto}
-@media (max-width:520px){ .kitchen{grid-template-columns:1fr} }
+.kitchen{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2);margin-bottom:var(--s5);overflow:auto}
+@media (max-width:620px){ .kitchen{grid-template-columns:minmax(0,1fr)} }
 .krow{display:flex;align-items:center;gap:var(--s3);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--s3);cursor:pointer}
 .krow:hover{background:var(--paper)}
 .krow.on{border-color:var(--good);background:var(--good-soft)}
+.krow img{width:44px;height:44px;border-radius:var(--r-sm);object-fit:cover;background:var(--surface-2);flex:none}
 .krow .kl{flex:1;min-width:0}
 .krow .kl b{display:block;font-size:var(--fs-small);font-weight:600}
 .krow .kl span{display:block;font-size:var(--fs-label);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -950,6 +968,19 @@ footer{border-top:1px solid var(--line);padding-top:var(--s5);color:var(--ink-3)
   function openAsk(st, hits){
     if (!st.product){ notice('No product found for ' + st.label); return; }
     askBody.innerHTML = '';
+
+    var close = document.createElement('button');
+    close.className = 'dlgclose'; close.type = 'button'; close.setAttribute('aria-label','Close');
+    close.innerHTML = svg('m6 6 12 12M18 6 6 18');
+    close.addEventListener('click', function(){ closeDlg(askDlg); });
+
+    var grid = document.createElement('div'); grid.className = 'dlggrid';
+    var media = document.createElement('figure'); media.className = 'dlgmedia';
+    var img = document.createElement('img');
+    img.src = st.product.imageUrl || ''; img.alt = st.product.name; img.width = 360; img.height = 360;
+    media.appendChild(img);
+
+    var body = document.createElement('div'); body.className = 'dlgbody';
     var h = document.createElement('h3'); h.id = 'asktitle';
     h.textContent = 'Do you have ' + st.label.toLowerCase() + '?';
     var p = document.createElement('p');
@@ -962,6 +993,8 @@ footer{border-top:1px solid var(--line);padding-top:var(--s5);color:var(--ink-3)
     used.append(k, ul);
     var prod = document.createElement('div'); prod.className = 'prod';
     var pn = document.createElement('div'); pn.className = 'pn'; pn.textContent = st.product.name;
+    var ps = document.createElement('span'); ps.className = 'ps'; ps.textContent = st.product.section || '';
+    pn.appendChild(ps);
     var pp = document.createElement('div'); pp.className = 'pp'; pp.textContent = eur(st.product.price);
     prod.append(pn, pp);
     var act = document.createElement('div'); act.className = 'actions';
@@ -982,15 +1015,22 @@ footer{border-top:1px solid var(--line);padding-top:var(--s5);color:var(--ink-3)
     later.className = 'quiet'; later.type = 'button'; later.textContent = 'Not now';
     later.addEventListener('click', function(){ closeDlg(askDlg); });
     act.append(have, buy, later);
-    askBody.append(h, p, used, prod, act);
+    body.append(h, p, used, prod, act);
+    grid.append(media, body);
+    askBody.append(close, grid);
     openDlg(askDlg);
   }
-
   function openKitchen(first){
     kitBody.innerHTML = '';
     var chosen = {};
     STAPLES.forEach(function(st){ if (state.pantry[st.key] === 'have') chosen[st.key] = true; });
 
+    var close = document.createElement('button');
+    close.className = 'dlgclose'; close.type = 'button'; close.setAttribute('aria-label','Close');
+    close.innerHTML = svg('m6 6 12 12M18 6 6 18');
+    close.addEventListener('click', function(){ if (first){ state.setup = true; save(); } closeDlg(kitDlg); });
+
+    var body = document.createElement('div'); body.className = 'dlgbody';
     var h = document.createElement('h3'); h.id = 'kittitle';
     h.textContent = first ? 'What is already in your kitchen?' : 'Your kitchen';
     var p = document.createElement('p');
@@ -1003,13 +1043,16 @@ footer{border-top:1px solid var(--line);padding-top:var(--s5);color:var(--ink-3)
       r.tabIndex = 0;
       r.setAttribute('role','checkbox');
       r.setAttribute('aria-checked', chosen[st.key] ? 'true' : 'false');
+      var thumb = document.createElement('img');
+      thumb.alt = ''; thumb.loading = 'lazy'; thumb.width = 44; thumb.height = 44;
+      if (st.product && st.product.imageUrl) thumb.src = st.product.imageUrl;
       var kl = document.createElement('div'); kl.className = 'kl';
       var b = document.createElement('b'); b.textContent = st.label;
       var s = document.createElement('span');
       s.textContent = st.product ? st.product.name : 'not in the catalogue';
       kl.append(b, s);
       var kk = document.createElement('span'); kk.className = 'kbox'; kk.textContent = '\u2713';
-      r.append(kl, kk);
+      r.append(thumb, kl, kk);
       function toggle(){
         chosen[st.key] = !chosen[st.key];
         r.className = 'krow' + (chosen[st.key] ? ' on' : '');
@@ -1043,10 +1086,10 @@ footer{border-top:1px solid var(--line);padding-top:var(--s5);color:var(--ink-3)
     alt.addEventListener('click', function(){ if (first){ state.setup = true; save(); } closeDlg(kitDlg); });
     act.appendChild(alt);
 
-    kitBody.append(h, p, grid, act);
+    body.append(h, p, grid, act);
+    kitBody.append(close, body);
     openDlg(kitDlg);
   }
-
   function renderAll(){
     renderMoney(); renderBasket(); renderChecks(); renderPantry(); loadProducts(true);
   }
@@ -1178,6 +1221,8 @@ footer{border-top:1px solid var(--line);padding-top:var(--s5);color:var(--ink-3)
 </script>
 </body>
 </html>
+
+
 
 
 

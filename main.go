@@ -293,8 +293,10 @@ var stapleDefs = []stapleDef{
 
 func handleStaples(w http.ResponseWriter, r *http.Request) {
 	type offer struct {
-		Name  string  `json:"name"`
-		Price float64 `json:"price"`
+		Name     string  `json:"name"`
+		Price    float64 `json:"price"`
+		ImageURL string  `json:"imageUrl"`
+		Section  string  `json:"section"`
 	}
 	type out struct {
 		Key       string   `json:"key"`
@@ -330,7 +332,7 @@ func handleStaples(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if best >= 0 {
-			o.Product = &offer{products[best].Name, products[best].Price}
+			o.Product = &offer{products[best].Name, products[best].Price, products[best].ImageURL, products[best].Section}
 		}
 		res = append(res, o)
 	}
