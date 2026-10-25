@@ -308,7 +308,7 @@ main{padding:var(--s9) 0 var(--s11)}
 
 /* ---------------- dialogs ---------------- */
 dialog{border:none;padding:0;border-radius:var(--r-lg);background:var(--card);color:var(--ink);
-  box-shadow:var(--shadow-2);width:min(940px,calc(100vw - var(--s8)));max-width:min(940px,calc(100vw - var(--s8)));
+  box-shadow:var(--shadow-2);width:100%;max-width:min(940px,calc(100% - var(--s8)));
   max-height:min(88svh,780px);overflow:hidden}
 dialog[open]{display:flex;flex-direction:column}
 dialog::backdrop{background:var(--scrim);backdrop-filter:blur(3px)}
@@ -321,7 +321,7 @@ dialog::backdrop{background:var(--scrim);backdrop-filter:blur(3px)}
 .dlgmedia img{width:100%;height:100%;object-fit:cover;display:block}
 .dlgbody{padding:var(--s9) var(--s8) var(--s8);overflow:auto;min-height:0}
 @media (max-width:760px){
-  dialog{width:calc(100vw - var(--s5));max-height:92svh}
+  dialog{max-width:calc(100% - var(--s5));max-height:92svh}
   .dlggrid{grid-template-columns:minmax(0,1fr);overflow:auto}
   .dlgmedia img{height:auto;aspect-ratio:16/10}
   .dlgclose{background:rgba(255,255,255,.94)}
@@ -1274,5 +1274,6 @@ footer{border-top:1px solid var(--line);margin-top:var(--s10);padding-top:var(--
 </script>
 </body>
 </html>
+
 
 
