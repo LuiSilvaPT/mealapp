@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -41,14 +42,95 @@ const (
 )
 
 type Product struct {
-	Name     string   `json:"name"`
-	Price    float64  `json:"price"`
-	Unit     string   `json:"unit"`
-	Weighted bool     `json:"weighted"`
-	Section  string   `json:"section"`
-	ExtID    string   `json:"extId"`
-	ImageURL string   `json:"imageUrl"`
-	Meals    []string `json:"meals"`
+	Name      string   `json:"name"`
+	Price     float64  `json:"price"`
+	Unit      string   `json:"unit"`
+	Weighted  bool     `json:"weighted"`
+	Section   string   `json:"section"`
+	ExtID     string   `json:"extId"`
+	ImageURL  string   `json:"imageUrl"`
+	Meals     []string `json:"meals"`
+	Role      string   `json:"role"`
+	UnitPrice float64  `json:"unitPrice"`
+	UnitLabel string   `json:"unitLabel"`
+}
+
+// ---- food roles, used by the auto-fill and the balance warning -----------------
+
+var sectionRole = map[string]string{
+	"Aves e Coelho": "protein", "Bovino": "protein", "Porco": "protein",
+	"Mais Carnes": "protein", "Bacalhau": "protein", "Peixe Fresco": "protein",
+	"Filetes, Lombos e Postas": "protein", "Marisco": "protein",
+	"Talho Congelado": "protein", "Peixe e Marisco Congelados": "protein",
+	"Salgados e Pastelaria": "protein", "Conservas": "protein", "Ovos": "protein",
+	"Leguminosas Secas": "protein", "Charcutaria": "protein",
+	"Salmão Fumado e Caviar": "protein", "Salmão Fumado e Especialidades": "protein",
+	"Refeições Frescas": "protein", "Refeições Congeladas": "protein",
+
+	"Arroz, Massa e Farinha": "carb", "Massas e Noodles": "carb",
+	"Massas para Culinária": "carb", "Batatas e Purés": "carb",
+	"Pão": "carb", "Tostas, Gressinos e Croutons": "carb",
+	"Cereais e Barras": "carb", "Pizzas": "carb", "Hambúrgueres e Sandes": "carb",
+
+	"Legumes Frescos": "veg", "Frutas e Legumes": "veg",
+	"Salada, Preparados e Salteados": "veg", "Sopas e Saladas": "veg",
+
+	"Fruta Fresca": "fruit",
+	"Frutos Secos, Desidratados e Sementes": "fruit",
+
+	"Queijos": "dairy", "Iogurtes Sólidos": "dairy", "Iogurtes Líquidos": "dairy",
+	"Alternativas ao Iogurte": "dairy", "Bebidas Lácteas": "dairy",
+	"Manteiga e Cremes Culinários": "dairy", "Natas e Bechamel": "dairy",
+	"Sem Lactose": "dairy", "Sem Glúten": "dairy",
+}
+
+func role(p Product) string {
+	if r, ok := sectionRole[p.Section]; ok {
+		return r
+	}
+	return "other"
+}
+
+// ---- normalised price: what does it cost per kg or per litre? ------------------
+
+var (
+	sizeRe   = regexp.MustCompile(`(?i)(\d+(?:[.,]\d+)?)\s*(kg|quilograma|g|gr|gramas|grama|ml|cl|lt|l|litro|litros)\b`)
+	multRe   = regexp.MustCompile(`(?i)(\d+)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*(ml|cl|lt|l|g|kg)`)
+	numToF64 = func(s string) float64 {
+		v, _ := strconv.ParseFloat(strings.Replace(s, ",", ".", 1), 64)
+		return v
+	}
+)
+
+// unitPrice returns the price per kg (for solids) or per litre (for liquids).
+func unitPrice(p Product) (float64, string) {
+	if p.Weighted {
+		return p.Price, "kg"
+	}
+	amount, label := 0.0, ""
+	if m := multRe.FindStringSubmatch(p.Name); m != nil {
+		amount = numToF64(m[1]) * numToF64(m[2])
+		label = strings.ToLower(m[3])
+	} else if m := sizeRe.FindStringSubmatch(p.Name); m != nil {
+		amount = numToF64(m[1])
+		label = strings.ToLower(m[2])
+	}
+	if amount <= 0 {
+		return 0, ""
+	}
+	switch label {
+	case "kg", "quilograma":
+		return p.Price / amount, "kg"
+	case "g", "gr", "grama", "gramas":
+		return p.Price / amount * 1000, "kg"
+	case "l", "lt", "litro", "litros":
+		return p.Price / amount, "L"
+	case "ml":
+		return p.Price / amount * 1000, "L"
+	case "cl":
+		return p.Price / (amount / 100), "L"
+	}
+	return 0, ""
 }
 
 // ---- which meals a product belongs to ----------------------------------------
@@ -306,6 +388,8 @@ func setProducts(p []Product) {
 	folded := make([]string, len(p))
 	for i := range p {
 		p[i].Meals = classify(p[i])
+		p[i].Role = role(p[i])
+		p[i].UnitPrice, p[i].UnitLabel = unitPrice(p[i])
 		folded[i] = fold(p[i].Name + " " + p[i].Section)
 	}
 	mu.Lock()
@@ -572,6 +656,8 @@ func handleProducts(w http.ResponseWriter, r *http.Request) {
 	q := fold(strings.TrimSpace(r.URL.Query().Get("q")))
 	section := r.URL.Query().Get("section")
 	meal := r.URL.Query().Get("meal")
+	roleWant := r.URL.Query().Get("role")
+	sortBy := r.URL.Query().Get("sort")
 	maxPrice, _ := strconv.ParseFloat(r.URL.Query().Get("max"), 64)
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
@@ -585,6 +671,9 @@ func handleProducts(w http.ResponseWriter, r *http.Request) {
 	matched, skipped := 0, 0
 	for i, p := range products {
 		if section != "" && p.Section != section {
+			continue
+		}
+		if roleWant != "" && p.Role != roleWant {
 			continue
 		}
 		if meal != "" {
@@ -627,6 +716,19 @@ func handleProducts(w http.ResponseWriter, r *http.Request) {
 	}
 	total := len(products)
 	mu.RUnlock()
+
+	if sortBy == "unit" {
+		sort.SliceStable(out, func(i, j int) bool {
+			a, b := out[i].UnitPrice, out[j].UnitPrice
+			if a <= 0 {
+				return false
+			}
+			if b <= 0 {
+				return true
+			}
+			return a < b
+		})
+	}
 
 	writeJSON(w, map[string]any{
 		"total": total, "matched": matched, "offset": offset,
