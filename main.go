@@ -275,10 +275,10 @@ var stapleDefs = []stapleDef{
 	{"azeite", "Olive oil", []string{"azeite"}, []string{"Azeite, Óleo e Vinagre"},
 		[]string{"Arroz, Massa e Farinha", "Legumes Frescos", "Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco", "Massas e Noodles", "Batatas e Purés"},
 		[]string{"batata", "arroz", "massa", "frango", "carne", "peixe", "bacalhau", "legumes", "salada", "tomate", "ovo", "sopa"}},
-	{"alho", "Garlic", []string{"alho"}, []string{"Sal e Temperos", "Legumes Frescos", "Sal, Ervas e Temperos"},
+	{"alho", "Garlic", []string{"alho"}, []string{"Sal e Temperos", "Legumes Frescos", "Sal, Ervas e Temperos", "Batatas, Alho e Cebola"},
 		[]string{"Aves e Coelho", "Porco", "Bovino", "Legumes Frescos", "Arroz, Massa e Farinha"},
 		[]string{"frango", "carne", "arroz", "massa", "batata", "legumes", "peixe", "bacalhau"}},
-	{"cebola", "Onion", []string{"cebola"}, []string{"Legumes Frescos"},
+	{"cebola", "Onion", []string{"cebola"}, []string{"Legumes Frescos", "Batatas, Alho e Cebola"},
 		[]string{"Aves e Coelho", "Porco", "Bovino", "Legumes Frescos", "Arroz, Massa e Farinha"},
 		[]string{"frango", "carne", "arroz", "sopa", "feijao", "tomate", "batata", "bacalhau"}},
 	{"pimenta", "Pepper", []string{"pimenta"}, []string{"Sal e Temperos", "Sal, Ervas e Temperos"},
@@ -586,6 +586,14 @@ var accent = strings.NewReplacer(
 	"ç", "c", "ñ", "n",
 )
 
+func numOrZero(s string) float64 {
+	v, err := strconv.ParseFloat(strings.Replace(strings.TrimSpace(s), ",", ".", 1), 64)
+	if err != nil || math.IsNaN(v) || math.IsInf(v, 0) {
+		return 0
+	}
+	return v
+}
+
 func fold(s string) string { return accent.Replace(strings.ToLower(s)) }
 
 // words turns a string into a space-padded run of lowercase words, so keyword
@@ -625,7 +633,7 @@ func writeJSON(w http.ResponseWriter, v any) {
 const (
 	auchanCatalog = "auchan_catalog.json"
 	auchanGrid    = "https://www.auchan.pt/on/demandware.store/Sites-AuchanPT-Site/pt_PT/Search-UpdateGrid"
-	auchanCGID    = "alimentacao-"
+	auchanCGIDs   = "alimentacao-,produtos-frescos"
 	browserUA     = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 )
 
@@ -668,6 +676,44 @@ var auchanSectionMeals = map[string][]string{
 	"Pastilhas, Rebuçados e Chupas": {"snack"},
 	"Gelatinas e Sobremesas":      {"snack"},
 	"Sobremesas":                  {"snack"},
+	// fresh aisles
+	"Pão Fresco e Broa":            {"breakfast", "lunch", "dinner"},
+	"Pastelaria Tradicional":       {"breakfast", "snack"},
+	"Pastelaria Regional":          {"breakfast", "snack"},
+	"Croissants, Folhados e Brioches": {"breakfast", "snack"},
+	"Bolos Embalados":              {"breakfast", "snack"},
+	"Bolos de Aniversário":         {"snack"},
+	"Biscoitos Tradicionais e Bolachas": {"breakfast", "snack"},
+	"Banana e Frutos Tropicais":    {"breakfast", "snack"},
+	"Maçãs, Peras e Uvas":          {"breakfast", "snack"},
+	"Fruta da Época":               {"breakfast", "snack"},
+	"Frutos Secos e Sementes":      {"breakfast", "snack"},
+	"Sumos de Fruta":               {"breakfast", "snack"},
+	"Peixe Fresco":                 {"lunch", "dinner"},
+	"Postas de Peixe":              {"lunch", "dinner"},
+	"Bacalhau":                     {"lunch", "dinner"},
+	"Marisco":                      {"lunch", "dinner"},
+	"Polvo, Lulas e Choco":         {"lunch", "dinner"},
+	"Camarão e Miolo de Camarão":   {"lunch", "dinner"},
+	"Salmão Fumado, Ovas e Preparados": {"breakfast", "lunch"},
+	"Porco":                        {"lunch", "dinner"},
+	"Vitela e Novilho":             {"lunch", "dinner"},
+	"Frango e Galinha":             {"lunch", "dinner"},
+	"Hambúrgueres e Carne Picada":  {"lunch", "dinner"},
+	"Chouriço, Bacon e Outros":     {"lunch", "dinner"},
+	"Patés, Salsichas e Mortadela": {"lunch", "dinner"},
+	"Alheira, Farinheira e Morcela": {"lunch", "dinner"},
+	"Elaborados":                   {"lunch", "dinner"},
+	"Presunto":                     {"breakfast", "lunch"},
+	"Mais Legumes":                 {"lunch", "dinner"},
+	"Tomate, Pepino e Pimentos":    {"lunch", "dinner"},
+	"Batatas, Alho e Cebola":       {"lunch", "dinner"},
+	"Cogumelos":                    {"lunch", "dinner"},
+	"Saladas Embaladas e Preparados para Sopas": {"lunch", "dinner"},
+	"Sopas e Preparados para Sopa": {"lunch", "dinner"},
+	"Refeições Prontas":            {"lunch", "dinner"},
+	"Massas Frescas":               {"lunch", "dinner"},
+	"Ervas Aromáticas":             {"lunch", "dinner"},
 }
 
 func auchanMeals(section string) []string {
@@ -693,6 +739,22 @@ var auchanSectionRole = map[string]string{
 	"Natas, Béchamel e Chantilly": "dairy", "Bebidas Vegetais": "dairy",
 	"Leite Sem Lactose": "dairy", "Leite Condensado e Preparado para Bolos": "dairy",
 	"Biológicos Lácteos": "dairy",
+	"Peixe Fresco": "protein", "Postas de Peixe": "protein", "Bacalhau": "protein",
+	"Marisco": "protein", "Polvo, Lulas e Choco": "protein",
+	"Camarão e Miolo de Camarão": "protein", "Salmão Fumado, Ovas e Preparados": "protein",
+	"Porco": "protein", "Vitela e Novilho": "protein", "Frango e Galinha": "protein",
+	"Hambúrgueres e Carne Picada": "protein", "Chouriço, Bacon e Outros": "protein",
+	"Patés, Salsichas e Mortadela": "protein", "Alheira, Farinheira e Morcela": "protein",
+	"Elaborados": "protein", "Presunto": "protein", "Refeições Prontas": "protein",
+	"Mais Legumes": "veg", "Tomate, Pepino e Pimentos": "veg",
+	"Batatas, Alho e Cebola": "veg", "Cogumelos": "veg",
+	"Saladas Embaladas e Preparados para Sopas": "veg", "Ervas Aromáticas": "veg",
+	"Banana e Frutos Tropicais": "fruit", "Maçãs, Peras e Uvas": "fruit",
+	"Fruta da Época": "fruit", "Frutos Secos e Sementes": "fruit",
+	"Pão Fresco e Broa": "carb", "Pastelaria Tradicional": "carb",
+	"Pastelaria Regional": "carb", "Croissants, Folhados e Brioches": "carb",
+	"Bolos Embalados": "carb", "Biscoitos Tradicionais e Bolachas": "carb",
+	"Massas Frescas": "carb",
 }
 
 func roleAuchan(section string) string {
@@ -772,6 +834,12 @@ func fetchText(u string) (string, error) {
 	return "", last
 }
 
+type auchanGTMOld struct {
+	Name  string `json:"name"`
+	ID    string `json:"id"`
+	Price string `json:"price"`
+}
+
 type auchanGTM struct {
 	ItemID     string `json:"item_id"`
 	ItemName   string `json:"item_name"`
@@ -787,6 +855,7 @@ type auchanGTM struct {
 
 var (
 	gtmNewRe = regexp.MustCompile(`data-gtm-new="([^"]+)"`)
+	weightRe = regexp.MustCompile(`(?i)\bkg\b`)
 	gtmRe    = regexp.MustCompile(`data-gtm="([^"]+)"`)
 	imgRe    = regexp.MustCompile(`data-srcset="(https://www\.auchan\.pt/dw/image/[^"]+?)"`)
 	swRe     = regexp.MustCompile(`[?&]sw=\d+`)
@@ -800,9 +869,7 @@ func parseAuchanTiles(page string) []Product {
 	// page on the tile class does not work: the image container's class is
 	// auc-product-tile__image-container__image, so the split cuts each tile in half.
 	gtms := gtmNewRe.FindAllStringSubmatch(page, -1)
-	if len(gtms) == 0 {
-		gtms = gtmRe.FindAllStringSubmatch(page, -1)
-	}
+	olds := gtmRe.FindAllStringSubmatch(page, -1)
 	imgs := imgRe.FindAllStringSubmatch(page, -1)
 	out := make([]Product, 0, len(gtms))
 	for i, m := range gtms {
@@ -813,11 +880,32 @@ func parseAuchanTiles(page string) []Product {
 		if g.ItemName == "" || g.ItemID == "" {
 			continue
 		}
-		price, err := strconv.ParseFloat(strings.Replace(strings.TrimSpace(g.Price), ",", ".", 1), 64)
+		// A tile carries two price blobs. data-gtm-new is the line price for the
+		// default quantity; data-gtm is the price of one unit, which for loose
+		// goods is the price per kg. quantity is the discriminator: 1 means a
+		// pack (eggs, 24 un), anything else means sold by weight (0.2 kg of
+		// banana at 1.19/kg). Reading "KG" out of the name does not work:
+		// "SAL MARINHO 1 KG" is a pack and "MELANCIA KG PRODUTO LOCAL" is loose.
+		priceStr := g.Price
+		weighed := false
+		if q := numOrZero(g.Quantity); q > 0 && math.Abs(q-1) > 0.001 {
+			if i < len(olds) {
+				var o auchanGTMOld
+				if err := json.Unmarshal([]byte(html.UnescapeString(olds[i][1])), &o); err == nil && numOrZero(o.Price) > 0 {
+					weighed = true
+					priceStr = o.Price
+				}
+			}
+		}
+		price, err := strconv.ParseFloat(strings.Replace(strings.TrimSpace(priceStr), ",", ".", 1), 64)
 		// ParseFloat("NaN") returns NaN with no error, and Go cannot marshal NaN,
 		// which silently produced an empty catalogue once. Reject unpriced items.
 		if err != nil || math.IsNaN(price) || math.IsInf(price, 0) || price <= 0 {
 			continue
+		}
+		unit := "piece_piece"
+		if weighed {
+			unit = "kg"
 		}
 		img := ""
 		if i < len(imgs) {
@@ -838,7 +926,8 @@ func parseAuchanTiles(page string) []Product {
 			Section:  section,
 			ExtID:    g.ItemID,
 			ImageURL: img,
-			Unit:     "piece_piece",
+			Unit:     unit,
+			Weighted: weighed,
 		})
 	}
 	return out
@@ -847,24 +936,31 @@ func crawlAuchan() ([]Product, error) {
 	var out []Product
 	seen := map[string]bool{}
 	pages := 0
-	for start := 0; start < 40000; start += 24 {
-		u := fmt.Sprintf("%s?cgid=%s&start=%d&sz=24&format=ajax", auchanGrid, auchanCGID, start)
-		page, err := fetchText(u)
-		if err != nil || len(page) < 1000 {
-			break
+	for _, cgid := range strings.Split(auchanCGIDs, ",") {
+		cgid = strings.TrimSpace(cgid)
+		if cgid == "" {
+			continue
 		}
-		tiles := parseAuchanTiles(page)
-		if len(tiles) == 0 {
-			break
-		}
-		for _, p := range tiles {
-			if !seen[p.ExtID] {
-				seen[p.ExtID] = true
-				out = append(out, p)
+		for start := 0; start < 40000; start += 24 {
+			u := fmt.Sprintf("%s?cgid=%s&start=%d&sz=24&format=ajax", auchanGrid, url.QueryEscape(cgid), start)
+			page, err := fetchText(u)
+			if err != nil || len(page) < 1000 {
+				break
 			}
+			tiles := parseAuchanTiles(page)
+			if len(tiles) == 0 {
+				break
+			}
+			for _, p := range tiles {
+				if !seen[p.ExtID] {
+					seen[p.ExtID] = true
+					out = append(out, p)
+				}
+			}
+			pages++
+			time.Sleep(140 * time.Millisecond)
 		}
-		pages++
-		time.Sleep(140 * time.Millisecond)
+		log.Printf("auchan: %s done, %d products so far", cgid, len(out))
 	}
 	if len(out) == 0 {
 		return nil, fmt.Errorf("auchan crawl returned nothing")
@@ -872,7 +968,6 @@ func crawlAuchan() ([]Product, error) {
 	sort.Slice(out, func(i, j int) bool { return out[i].Price < out[j].Price })
 	return out, nil
 }
-
 func loadAuchan() error {
 	b, err := os.ReadFile(auchanCatalog)
 	if err != nil {
@@ -1369,6 +1464,13 @@ func main() {
 
 // keep net/url imported for future query building without churn
 var _ = url.Values{}
+
+
+
+
+
+
+
 
 
 
