@@ -337,16 +337,22 @@ func writeJSON(w http.ResponseWriter, v any) {
 
 func handleProducts(w http.ResponseWriter, r *http.Request) {
 	q := fold(strings.TrimSpace(r.URL.Query().Get("q")))
+	section := r.URL.Query().Get("section")
 	maxPrice, _ := strconv.ParseFloat(r.URL.Query().Get("max"), 64)
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	if limit <= 0 || limit > 400 {
-		limit = 60
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	if limit <= 0 || limit > 200 {
+		limit = 48
 	}
 	terms := strings.Fields(q)
 
 	mu.RLock()
 	out := make([]Product, 0, limit)
+	matched, skipped := 0, 0
 	for i, p := range products {
+		if section != "" && p.Section != section {
+			continue
+		}
 		if maxPrice > 0 && p.Price > maxPrice {
 			continue
 		}
@@ -363,15 +369,42 @@ func handleProducts(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 		}
-		out = append(out, p)
-		if len(out) >= limit {
-			break
+		matched++
+		if skipped < offset {
+			skipped++
+			continue
 		}
+		if len(out) >= limit {
+			continue
+		}
+		out = append(out, p)
 	}
 	total := len(products)
 	mu.RUnlock()
 
-	writeJSON(w, map[string]any{"total": total, "count": len(out), "products": out})
+	writeJSON(w, map[string]any{
+		"total": total, "matched": matched, "offset": offset,
+		"count": len(out), "products": out,
+	})
+}
+
+func handleSections(w http.ResponseWriter, r *http.Request) {
+	mu.RLock()
+	counts := map[string]int{}
+	for _, p := range products {
+		counts[p.Section]++
+	}
+	mu.RUnlock()
+	type sec struct {
+		Name  string `json:"name"`
+		Count int    `json:"count"`
+	}
+	out := make([]sec, 0, len(counts))
+	for n, c := range counts {
+		out = append(out, sec{n, c})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	writeJSON(w, map[string]any{"sections": out})
 }
 
 func handleStats(w http.ResponseWriter, r *http.Request) {
@@ -427,6 +460,7 @@ func main() {
 		_, _ = w.Write(b)
 	})
 	http.HandleFunc("/api/products", handleProducts)
+	http.HandleFunc("/api/sections", handleSections)
 	http.HandleFunc("/api/stats", handleStats)
 	http.HandleFunc("/api/refresh", handleRefresh)
 

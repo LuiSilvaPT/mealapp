@@ -7,83 +7,97 @@
 <meta name="color-scheme" content="light dark">
 <style>
   :root{
-    --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+    --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
     --r-sm:8px; --r-md:14px; --r-pill:999px;
     --bg:#FFFFFF; --surface:#FAF8F5; --surface-2:#F2EFEA; --border:#E8E4DD;
     --text:#1C1A17; --text-2:#57534B; --text-3:#8B857C;
     --accent:#B4551F; --accent-600:#8F4318; --accent-050:#FDF3EC;
-    --ok:#1F6F4A; --ok-bg:#EAF4EE; --warn:#A33A2A;
+    --ok:#1F6F4A; --over:#A33A2A;
     --shadow-1:0 1px 2px rgba(60,42,24,.06), 0 1px 1px rgba(60,42,24,.04);
+    --shadow-2:0 4px 12px rgba(60,42,24,.10);
   }
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#14120F; --surface:#1C1916; --surface-2:#262220; --border:#332E29;
       --text:#F5F1EA; --text-2:#C4BCB1; --text-3:#9A9187;
       --accent:#E08A54; --accent-600:#F0A070; --accent-050:#2A2019;
-      --ok:#5FBF8B; --ok-bg:#1B2A22; --warn:#F08A72;
-      --shadow-1:0 1px 2px rgba(0,0,0,.5);
+      --ok:#5FBF8B; --over:#F08A72;
+      --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 6px 18px rgba(0,0,0,.55);
     }
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);
-    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    -webkit-font-smoothing:antialiased}
-  a{color:var(--accent-600)}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  button{font:inherit;cursor:pointer}
   :focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:var(--r-sm)}
-  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
-
-  header{position:sticky;top:0;z-index:20;background:var(--bg);box-shadow:var(--shadow-1)}
-  header .bar{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap;padding:var(--s3) 0}
-  h1{font-size:1.05rem;margin:0;font-weight:700;letter-spacing:-.01em}
-  .meta{color:var(--text-3);font-size:.8rem}
-  .budget{display:flex;align-items:center;gap:var(--s2);margin-left:auto}
-  .budget label{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:600}
-  .budget input{width:90px;font:inherit;font-size:.95rem;padding:6px 10px;border:1px solid var(--border);
-    border-radius:var(--r-sm);background:var(--surface);color:var(--text)}
-  .remaining{font-variant-numeric:tabular-nums;font-weight:700;font-size:1.15rem}
-  .remaining.over{color:var(--warn)}
-  .remaining.ok{color:var(--ok)}
-  button{font:inherit;font-size:.85rem;font-weight:600;padding:8px 14px;border-radius:var(--r-sm);cursor:pointer;
-    border:1px solid var(--border);background:var(--surface);color:var(--text)}
-  button:hover{background:var(--surface-2)}
-  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-  button.primary:hover{background:var(--accent-600);border-color:var(--accent-600)}
-  @media (prefers-color-scheme: dark){ button.primary{color:#1A1512} }
-
-  main{padding:var(--s5) 0 var(--s6)}
-  .slots{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s4)}
-  .slot{background:var(--surface);border-radius:var(--r-md);padding:var(--s4);display:flex;flex-direction:column;gap:var(--s3)}
-  .slothead{display:flex;align-items:center;gap:var(--s2)}
-  .slothead input.name{flex:1;font:inherit;font-weight:700;font-size:1rem;border:none;background:transparent;color:var(--text);padding:2px 0}
-  .slothead input.name:focus{outline:none;border-bottom:2px solid var(--accent)}
-  .slothead .cap{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
-  .slothead .cap input{width:70px;font:inherit;font-size:.9rem;padding:5px 8px;border:1px solid var(--border);
-    border-radius:var(--r-sm);background:var(--bg);color:var(--text)}
-  .x{border:none;background:transparent;color:var(--text-3);font-size:1.1rem;line-height:1;padding:4px 6px;cursor:pointer}
-  .x:hover{color:var(--warn)}
-  .search{display:flex;gap:var(--s2)}
-  .search input{flex:1;font:inherit;font-size:.95rem;padding:9px 12px;border:1px solid var(--border);
-    border-radius:var(--r-sm);background:var(--bg);color:var(--text)}
-  .results{max-height:230px;overflow:auto;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg)}
-  .results:empty{display:none}
-  .hit{display:flex;align-items:center;gap:var(--s3);width:100%;text-align:left;padding:8px 10px;
-    border:none;border-bottom:1px solid var(--border);background:transparent;border-radius:0;font-weight:500;font-size:.9rem}
-  .hit:last-child{border-bottom:none}
-  .hit:hover{background:var(--accent-050)}
-  .hit .p{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent-600);flex:none;min-width:56px}
-  .hit .n{flex:1;min-width:0}
-  .hit .s{color:var(--text-3);font-size:.75rem;display:block}
-  .picked{display:flex;flex-direction:column;gap:2px}
-  .picked .row{display:flex;align-items:center;gap:var(--s2);font-size:.9rem;padding:5px 0;border-bottom:1px dotted var(--border)}
-  .picked .row .p{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600}
-  .empty{color:var(--text-3);font-size:.85rem;padding:6px 0}
-  .slottotal{display:flex;justify-content:space-between;font-size:.85rem;color:var(--text-2);
-    border-top:1px solid var(--border);padding-top:var(--s2);margin-top:auto}
-  .slottotal b{font-variant-numeric:tabular-nums;color:var(--text)}
-  .bar{display:flex;align-items:center;gap:var(--s3);margin-top:var(--s4)}
-  .status{font-size:.8rem;color:var(--text-3)}
-  footer{margin-top:var(--s6);padding-top:var(--s4);border-top:1px solid var(--border);color:var(--text-3);font-size:.8rem}
-  @media (max-width:860px){ .slots{grid-template-columns:1fr} }
+  .wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+  header{position:sticky;top:0;z-index:30;background:var(--bg);box-shadow:var(--shadow-1)}
+  header .bar{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap;padding:10px 0}
+  h1{font-size:1rem;margin:0;font-weight:700;white-space:nowrap}
+  .meta{color:var(--text-3);font-size:.78rem}
+  .money{display:flex;align-items:center;gap:var(--s4);margin-left:auto;flex-wrap:wrap}
+  .field{display:flex;align-items:center;gap:6px}
+  .field label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:700}
+  .field input{width:88px;font:inherit;font-size:.95rem;padding:6px 9px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);color:var(--text)}
+  .left{font-variant-numeric:tabular-nums;font-weight:800;font-size:1.2rem;color:var(--ok)}
+  .left.over{color:var(--over)}
+  .spent{font-variant-numeric:tabular-nums;color:var(--text-2);font-size:.85rem}
+  .btn{font-size:.82rem;font-weight:600;padding:8px 13px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);color:var(--text)}
+  .btn:hover{background:var(--surface-2)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .btn.primary{color:#1A1512} }
+  .toggle{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text-2);user-select:none}
+  .toggle input{accent-color:var(--accent);width:16px;height:16px}
+  .app{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:var(--s5);padding:var(--s5) 0 var(--s6);align-items:start}
+  @media (max-width:1040px){ .app{grid-template-columns:1fr} }
+  .searchrow{display:flex;gap:var(--s2);margin-bottom:var(--s3)}
+  .searchrow input{flex:1;font:inherit;font-size:1rem;padding:11px 14px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);color:var(--text)}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:var(--s3);scrollbar-width:thin}
+  .chip{flex:0 0 auto;font-size:.8rem;font-weight:600;padding:6px 12px;border-radius:var(--r-pill);border:1px solid var(--border);background:var(--surface);color:var(--text-2);white-space:nowrap}
+  .chip:hover{background:var(--surface-2)}
+  .chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+  .count{color:var(--text-3);font-size:.8rem;margin:0 0 var(--s3)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:var(--s3)}
+  .card{display:flex;flex-direction:column;text-align:left;padding:0;overflow:hidden;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);transition:transform .12s ease, box-shadow .12s ease}
+  .card:hover{transform:translateY(-2px);box-shadow:var(--shadow-2)}
+  .card img{width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--surface-2);display:block}
+  .card .body{padding:9px 11px 12px;display:flex;flex-direction:column;gap:5px;flex:1}
+  .card .n{font-size:.86rem;font-weight:600;line-height:1.3}
+  .card .s{font-size:.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
+  .card .p{margin-top:auto;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent-600);font-size:.95rem}
+  .card.over{opacity:.4;cursor:not-allowed}
+  .card.over:hover{transform:none;box-shadow:none}
+  .more{display:flex;justify-content:center;margin-top:var(--s4)}
+  .basket{position:sticky;top:74px;background:var(--surface);border-radius:var(--r-md);padding:var(--s4);box-shadow:var(--shadow-1)}
+  @media (max-width:1040px){ .basket{position:static} }
+  .basket h2{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin:0 0 var(--s3);font-weight:700}
+  .slotbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(--s4)}
+  .slotbar .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .slotbar .chip.on{color:#1A1512} }
+  .slot{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:var(--s2)}
+  .slot.here{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-050)}
+  .slot .top{display:flex;align-items:center;gap:8px}
+  .slot .top input.name{flex:1;min-width:0;font:inherit;font-weight:700;font-size:.92rem;border:none;background:transparent;color:var(--text);padding:2px 0}
+  .slot .top input.name:focus{outline:none;border-bottom:2px solid var(--accent)}
+  .cap{display:flex;align-items:center;gap:4px;font-size:.66rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+  .cap input{width:58px;font:inherit;font-size:.82rem;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)}
+  .x{border:none;background:transparent;color:var(--text-3);font-size:1rem;line-height:1;padding:2px 5px;border-radius:6px}
+  .x:hover{color:var(--over);background:var(--surface-2)}
+  .items{margin:8px 0 0}
+  .item{display:flex;align-items:center;gap:8px;font-size:.83rem;padding:4px 0;border-bottom:1px dotted var(--border)}
+  .item:last-child{border-bottom:none}
+  .item .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .item .pr{font-variant-numeric:tabular-nums;font-weight:600}
+  .none{color:var(--text-3);font-size:.8rem;padding:6px 0 2px}
+  .stotal{display:flex;justify-content:space-between;font-size:.78rem;color:var(--text-2);margin-top:7px;padding-top:6px;border-top:1px solid var(--border)}
+  .stotal b{font-variant-numeric:tabular-nums;color:var(--text)}
+  .summary{margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--border)}
+  .srow{display:flex;justify-content:space-between;font-size:.86rem;color:var(--text-2);margin-bottom:5px}
+  .srow b{font-variant-numeric:tabular-nums;color:var(--text)}
+  .track{height:7px;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden;margin:9px 0 4px}
+  .track i{display:block;height:100%;width:0;background:var(--ok);transition:width .18s ease}
+  .track i.over{background:var(--over)}
+  .hint{font-size:.74rem;color:var(--text-3);margin-top:6px}
+  footer{border-top:1px solid var(--border);padding-top:var(--s4);color:var(--text-3);font-size:.78rem}
 </style>
 </head>
 <body>
@@ -92,234 +106,306 @@
   <div class="wrap bar">
     <div>
       <h1>Meal builder</h1>
-      <div class="meta" id="meta">Auchan, Castelo Branco · loading…</div>
+      <div class="meta" id="meta">loading catalogue…</div>
     </div>
-    <div class="budget">
-      <label for="budget">Budget €</label>
-      <input id="budget" type="number" min="0" step="0.5" value="39">
-      <span class="remaining ok" id="remaining">€39.00 left</span>
-      <button id="refresh" title="Re-fetch live prices from Glovo">Refresh prices</button>
+    <div class="money">
+      <span class="field"><label for="budget">Budget €</label><input id="budget" type="number" min="0" step="1" value="39"></span>
+      <span class="spent" id="spent">spent €0.00</span>
+      <span class="left" id="left">€39.00 left</span>
+      <label class="toggle"><input type="checkbox" id="showall"> show over budget</label>
+      <button class="btn" id="refresh">Refresh prices</button>
     </div>
   </div>
 </header>
 
-<main class="wrap">
-  <div class="slots" id="slots"></div>
-  <div class="bar">
-    <button id="addslot">+ Add slot</button>
-    <button id="clear">Clear all</button>
-    <span class="status" id="status"></span>
+<div class="wrap">
+  <div class="app">
+    <section>
+      <div class="searchrow">
+        <input id="q" type="search" placeholder="Search the catalogue — arroz, frango, atum…" autocomplete="off">
+      </div>
+      <div class="chips" id="chips"></div>
+      <p class="count" id="count"></p>
+      <div class="grid" id="grid"></div>
+      <div class="more" id="morewrap" hidden><button class="btn" id="more">Load more</button></div>
+    </section>
+
+    <aside class="basket">
+      <h2>Your meals — click a product to add it</h2>
+      <div class="slotbar" id="slotbar"></div>
+      <div id="slots"></div>
+      <button class="btn" id="addslot" style="width:100%;margin-top:6px">+ Add slot</button>
+      <div class="summary">
+        <div class="srow"><span>Spent</span><b id="sum-spent">€0.00</b></div>
+        <div class="srow"><span>Remaining</span><b id="sum-left">€39.00</b></div>
+        <div class="track"><i id="bar"></i></div>
+        <div class="hint" id="hint"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn" id="clear" style="flex:1">Clear all</button>
+        <button class="btn" id="copy" style="flex:1">Copy list</button>
+      </div>
+    </aside>
   </div>
+
   <footer>
-    Every line comes from the live Auchan (Castelo Branco) Glovo catalogue. Only products that fit the money you have
-    left are shown. Your slots are saved in this browser.
+    Live prices from the Auchan (Castelo Branco) Glovo catalogue. Products you can't afford with what's left are
+    hidden unless you tick “show over budget”. Everything is kept in your browser.
   </footer>
-</main>
+</div>
 
 <script>
 (function(){
-  var API = '/api/products';
-  var STORE = 'mealapp-v1';
+  var STORE = 'mealapp-v2', PAGE = 48;
+  function uid(){ return Math.random().toString(36).slice(2,9); }
+  function eur(n){ return '€' + (Math.round(n*100)/100).toFixed(2); }
 
   var state = load() || {
-    budget: 39,
+    budget: 39, active: null, showAll: false,
     slots: [
-      { id: id(), name: 'Breakfast', cap: 3,  items: [] },
-      { id: id(), name: 'Lunch',     cap: 5,  items: [] },
-      { id: id(), name: 'Dinner',    cap: 5,  items: [] },
-      { id: id(), name: 'Snack',     cap: 2,  items: [] }
+      { id: uid(), name: 'Breakfast', cap: 3, items: [] },
+      { id: uid(), name: 'Lunch',     cap: 6, items: [] },
+      { id: uid(), name: 'Dinner',    cap: 6, items: [] },
+      { id: uid(), name: 'Snack',     cap: 2, items: [] }
     ]
   };
+  if (!state.slots.length) state.slots.push({ id: uid(), name: 'Meals', cap: null, items: [] });
+  if (!state.active || !state.slots.some(function(s){ return s.id === state.active; })) state.active = state.slots[0].id;
 
-  function id(){ return Math.random().toString(36).slice(2,9); }
-  function eur(n){ return '€' + n.toFixed(2); }
   function load(){ try { return JSON.parse(localStorage.getItem(STORE)); } catch(e){ return null; } }
   function save(){ try { localStorage.setItem(STORE, JSON.stringify(state)); } catch(e){} }
 
-  function spent(){ return state.slots.reduce(function(a,s){ return a + total(s); }, 0); }
-  function total(s){ return s.items.reduce(function(a,i){ return a + i.price; }, 0); }
+  function slotById(id){ return state.slots.filter(function(s){ return s.id === id; })[0]; }
+  function slotTotal(s){ return s.items.reduce(function(a,i){ return a + i.price; }, 0); }
+  function spent(){ return state.slots.reduce(function(a,s){ return a + slotTotal(s); }, 0); }
   function remaining(){ return state.budget - spent(); }
-  function slotRoom(s){
-    var cap = parseFloat(s.cap);
-    if (isNaN(cap) || cap <= 0) return Infinity;
-    return cap - total(s);
-  }
-  // the money a search may spend: never more than what is left overall
-  function roomFor(s){
-    return Math.min(remaining(), slotRoom(s));
-  }
+  function slotRoom(s){ var c = parseFloat(s.cap); return (isNaN(c) || c <= 0) ? Infinity : c - slotTotal(s); }
+  function affordable(){ var s = slotById(state.active); return Math.min(remaining(), s ? slotRoom(s) : Infinity); }
 
+  var gridEl = document.getElementById('grid');
+  var countEl = document.getElementById('count');
+  var chipsEl = document.getElementById('chips');
   var slotsEl = document.getElementById('slots');
-  var remEl = document.getElementById('remaining');
-  var metaEl = document.getElementById('meta');
-  var statusEl = document.getElementById('status');
+  var slotbarEl = document.getElementById('slotbar');
+  var moreWrap = document.getElementById('morewrap');
 
-  function renderHeader(){
-    var r = remaining();
-    remEl.textContent = eur(r) + (r < 0 ? ' over' : ' left');
-    remEl.className = 'remaining ' + (r < 0 ? 'over' : 'ok');
+  var filter = { q: '', section: '' };
+  var shown = 0, matched = 0;
+
+  // ---------- header ----------
+  function renderMoney(){
+    var rem = remaining(), sp = spent();
+    var left = document.getElementById('left');
+    left.textContent = eur(rem) + (rem < 0 ? ' over' : ' left');
+    left.className = 'left' + (rem < 0 ? ' over' : '');
+    document.getElementById('spent').textContent = 'spent ' + eur(sp);
+    document.getElementById('sum-spent').textContent = eur(sp);
+    document.getElementById('sum-left').textContent = eur(rem);
+    var pct = state.budget > 0 ? Math.max(0, Math.min(100, sp / state.budget * 100)) : 0;
+    var bar = document.getElementById('bar');
+    bar.style.width = pct + '%';
+    bar.className = rem < 0 ? 'over' : '';
+    document.getElementById('hint').textContent = rem < 0
+      ? 'Over budget by ' + eur(-rem)
+      : 'You can still spend ' + eur(rem) + ' on this meal list.';
   }
 
-  function render(){
+  // ---------- product grid ----------
+  function loadProducts(reset){
+    if (reset) shown = 0;
+    var room = affordable();
+    var max = state.showAll ? 0 : Math.max(0, room);
+    var url = '/api/products?limit=' + PAGE + '&offset=' + shown +
+              '&q=' + encodeURIComponent(filter.q) +
+              '&section=' + encodeURIComponent(filter.section) +
+              '&max=' + max;
+    countEl.textContent = 'loading…';
+    fetch(url).then(function(r){ return r.json(); }).then(function(d){
+      if (reset) gridEl.innerHTML = '';
+      matched = d.matched;
+      d.products.forEach(function(p){ gridEl.appendChild(card(p, room)); });
+      shown += d.products.length;
+      countEl.textContent = d.matched + ' product' + (d.matched === 1 ? '' : 's') +
+        (state.showAll ? '' : ' within ' + eur(Math.max(0, room))) +
+        (filter.section ? ' in ' + filter.section : '') + (filter.q ? ' for “' + filter.q + '”' : '');
+      moreWrap.hidden = shown >= d.matched;
+    }).catch(function(){ countEl.textContent = 'could not load products'; });
+  }
+
+  function card(p, room){
+    var over = !state.showAll && p.price > room;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'card' + (over ? ' over' : '');
+    if (!over) b.addEventListener('click', function(){ addItem(p); });
+    else b.title = 'Over what you have left';
+    var img = document.createElement('img');
+    img.src = p.imageUrl || '';
+    img.alt = ''; img.loading = 'lazy'; img.width = 148; img.height = 148;
+    var body = document.createElement('div');
+    body.className = 'body';
+    var n = document.createElement('span'); n.className = 'n'; n.textContent = p.name;
+    var s = document.createElement('span'); s.className = 's'; s.textContent = p.section;
+    var pr = document.createElement('span'); pr.className = 'p'; pr.textContent = eur(p.price);
+    body.append(n, s, pr);
+    b.append(img, body);
+    return b;
+  }
+
+  // ---------- basket ----------
+  function addItem(p){
+    var s = slotById(state.active);
+    if (!s) return;
+    if (p.price > remaining() && !state.showAll) return;
+    s.items.push({ name: p.name, price: p.price });
+    save(); renderAll();
+  }
+
+  function renderBasket(){
+    slotbarEl.innerHTML = '';
+    state.slots.forEach(function(s){
+      var c = document.createElement('button');
+      c.type = 'button';
+      c.className = 'chip' + (s.id === state.active ? ' on' : '');
+      c.textContent = s.name + (s.items.length ? ' · ' + eur(slotTotal(s)) : '');
+      c.addEventListener('click', function(){ state.active = s.id; save(); renderAll(); });
+      slotbarEl.appendChild(c);
+    });
+
     slotsEl.innerHTML = '';
     state.slots.forEach(function(s){
-      var el = document.createElement('section');
-      el.className = 'slot';
+      var el = document.createElement('div');
+      el.className = 'slot' + (s.id === state.active ? ' here' : '');
 
-      var head = document.createElement('div');
-      head.className = 'slothead';
-
+      var top = document.createElement('div'); top.className = 'top';
       var nm = document.createElement('input');
-      nm.className = 'name';
-      nm.value = s.name;
-      nm.setAttribute('aria-label','Slot name');
-      nm.addEventListener('input', function(){ s.name = nm.value; save(); });
-
-      var capWrap = document.createElement('span');
-      capWrap.className = 'cap';
-      capWrap.textContent = 'cap €';
+      nm.className = 'name'; nm.value = s.name; nm.setAttribute('aria-label','Slot name');
+      nm.addEventListener('input', function(){ s.name = nm.value; save(); renderBasket(); });
+      var capWrap = document.createElement('span'); capWrap.className = 'cap'; capWrap.textContent = 'cap €';
       var cap = document.createElement('input');
-      cap.type = 'number'; cap.min = '0'; cap.step = '0.5';
-      cap.value = s.cap || '';
-      cap.setAttribute('aria-label','Budget for this slot');
-      cap.addEventListener('input', function(){
-        s.cap = cap.value === '' ? null : parseFloat(cap.value);
-        save(); renderHeader(); refreshResults(s);
-      });
+      cap.type = 'number'; cap.min = '0'; cap.step = '1'; cap.value = s.cap == null ? '' : s.cap;
+      cap.setAttribute('aria-label','Cap for this slot');
+      cap.addEventListener('input', function(){ s.cap = cap.value === '' ? null : parseFloat(cap.value); save(); renderAll(); });
       capWrap.appendChild(cap);
-
       var x = document.createElement('button');
-      x.className = 'x'; x.type = 'button'; x.textContent = '×';
-      x.title = 'Remove slot';
+      x.className = 'x'; x.type = 'button'; x.textContent = '×'; x.title = 'Remove slot';
       x.addEventListener('click', function(){
         state.slots = state.slots.filter(function(o){ return o.id !== s.id; });
-        save(); render();
+        if (!state.slots.length) state.slots.push({ id: uid(), name: 'Meals', cap: null, items: [] });
+        if (state.active === s.id) state.active = state.slots[0].id;
+        save(); renderAll();
       });
+      top.append(nm, capWrap, x);
 
-      head.append(nm, capWrap, x);
-
-      var search = document.createElement('div');
-      search.className = 'search';
-      var q = document.createElement('input');
-      q.type = 'search';
-      q.placeholder = 'Search products that fit ' + eur(Math.max(0, roomFor(s))) + '…';
-      q.addEventListener('input', debounce(function(){ runSearch(s, q, res); }, 140));
-      search.appendChild(q);
-
-      var res = document.createElement('div');
-      res.className = 'results';
-
-      var picked = document.createElement('div');
-      picked.className = 'picked';
-      if (!s.items.length) {
-        var e = document.createElement('div');
-        e.className = 'empty';
-        e.textContent = 'Nothing picked yet.';
-        picked.appendChild(e);
+      var items = document.createElement('div'); items.className = 'items';
+      if (!s.items.length){
+        var none = document.createElement('div'); none.className = 'none'; none.textContent = 'Nothing yet.';
+        items.appendChild(none);
       } else {
         s.items.forEach(function(it, idx){
-          var row = document.createElement('div');
-          row.className = 'row';
-          var t = document.createElement('span');
-          t.textContent = it.name;
-          var p = document.createElement('span');
-          p.className = 'p'; p.textContent = eur(it.price);
+          var row = document.createElement('div'); row.className = 'item';
+          var t = document.createElement('span'); t.className = 'nm'; t.textContent = it.name; t.title = it.name;
+          var pr = document.createElement('span'); pr.className = 'pr'; pr.textContent = eur(it.price);
           var rm = document.createElement('button');
           rm.className = 'x'; rm.type = 'button'; rm.textContent = '×'; rm.title = 'Remove';
-          rm.addEventListener('click', function(){
-            s.items.splice(idx,1); save(); render(); renderHeader();
-          });
-          row.append(t, p, rm);
-          picked.appendChild(row);
+          rm.addEventListener('click', function(){ s.items.splice(idx,1); save(); renderAll(); });
+          row.append(t, pr, rm);
+          items.appendChild(row);
         });
       }
 
-      var foot = document.createElement('div');
-      foot.className = 'slottotal';
-      var left = slotRoom(s);
-      foot.innerHTML = '<span>Slot total</span><b>' + eur(total(s)) +
-        (isFinite(left) ? ' · ' + eur(Math.max(0,left)) + ' of cap left' : '') + '</b>';
+      var foot = document.createElement('div'); foot.className = 'stotal';
+      var room = slotRoom(s);
+      var left = document.createElement('span');
+      left.innerHTML = 'Slot total' + (isFinite(room) ? ' · ' + eur(Math.max(0, room)) + ' of cap left' : '');
+      var val = document.createElement('b'); val.textContent = eur(slotTotal(s));
+      foot.append(left, val);
 
-      el.append(head, search, res, picked, foot);
+      el.append(top, items, foot);
       slotsEl.appendChild(el);
-      s._q = q; s._res = res;
     });
-    renderHeader();
   }
 
-  function refreshResults(s){
-    if (s._q && s._q.value.trim()) runSearch(s, s._q, s._res);
+  function renderAll(){
+    renderMoney();
+    renderBasket();
+    loadProducts(true);
   }
 
-  function runSearch(s, q, res){
-    var term = q.value.trim();
-    var room = roomFor(s);
-    if (room < 0) room = 0;
-    q.placeholder = 'Search products that fit ' + eur(room) + '…';
-    if (!term){ res.innerHTML = ''; return; }
-    var url = API + '?q=' + encodeURIComponent(term) + '&max=' + room.toFixed(2) + '&limit=40';
-    statusEl.textContent = 'searching…';
-    fetch(url).then(function(r){ return r.json(); }).then(function(d){
-      statusEl.textContent = '';
-      res.innerHTML = '';
-      if (!d.products || !d.products.length){
-        var e = document.createElement('div');
-        e.className = 'empty';
-        e.textContent = 'Nothing matches within ' + eur(room) + '.';
-        res.appendChild(e);
-        return;
-      }
-      d.products.forEach(function(p){
-        var b = document.createElement('button');
-        b.className = 'hit'; b.type = 'button';
-        var pr = document.createElement('span');
-        pr.className = 'p'; pr.textContent = eur(p.price);
-        var n = document.createElement('span');
-        n.className = 'n';
-        n.textContent = p.name;
-        var sec = document.createElement('span');
-        sec.className = 's'; sec.textContent = p.section + (p.unit === 'PIECE_PIECE' ? '' : ' · ' + p.unit);
-        n.appendChild(sec);
-        b.append(pr, n);
-        b.addEventListener('click', function(){
-          s.items.push({ name: p.name, price: p.price });
-          save(); render(); renderHeader();
-          var after = roomFor(s);
-          if (after < 0) after = 0;
-          s._q.placeholder = 'Search products that fit ' + eur(after) + '…';
-        });
-        res.appendChild(b);
+  // ---------- sections ----------
+  function loadSections(){
+    fetch('/api/sections').then(function(r){ return r.json(); }).then(function(d){
+      chipsEl.innerHTML = '';
+      var all = document.createElement('button');
+      all.type = 'button'; all.className = 'chip on'; all.textContent = 'All';
+      all.addEventListener('click', function(){ setSection(''); });
+      chipsEl.appendChild(all);
+      d.sections.forEach(function(s){
+        var c = document.createElement('button');
+        c.type = 'button'; c.className = 'chip'; c.textContent = s.name + ' ' + s.count;
+        c.addEventListener('click', function(){ setSection(s.name); });
+        chipsEl.appendChild(c);
       });
-    }).catch(function(){ statusEl.textContent = 'search failed'; });
+      chipsEl._all = all;
+    }).catch(function(){});
   }
 
-  function debounce(fn, ms){
-    var t; return function(){ clearTimeout(t); t = setTimeout(fn, ms); };
+  function setSection(name){
+    filter.section = name;
+    Array.prototype.forEach.call(chipsEl.children, function(c){
+      c.classList.toggle('on', name === '' ? c.textContent === 'All' : c.textContent.indexOf(name) === 0);
+    });
+    loadProducts(true);
   }
 
-  // ---- header controls
+  // ---------- controls ----------
+  var qEl = document.getElementById('q');
+  var t;
+  qEl.addEventListener('input', function(){
+    clearTimeout(t);
+    t = setTimeout(function(){ filter.q = qEl.value.trim(); loadProducts(true); }, 180);
+  });
+
   var budgetEl = document.getElementById('budget');
   budgetEl.value = state.budget;
   budgetEl.addEventListener('input', function(){
     state.budget = parseFloat(budgetEl.value) || 0;
-    save(); renderHeader();
-    state.slots.forEach(refreshResults);
+    save(); renderMoney(); loadProducts(true);
   });
 
+  var showAll = document.getElementById('showall');
+  showAll.checked = !!state.showAll;
+  showAll.addEventListener('change', function(){ state.showAll = showAll.checked; save(); loadProducts(true); });
+
+  document.getElementById('more').addEventListener('click', function(){ loadProducts(false); });
+
   document.getElementById('addslot').addEventListener('click', function(){
-    state.slots.push({ id: id(), name: 'New slot', cap: null, items: [] });
-    save(); render();
+    var s = { id: uid(), name: 'New slot', cap: null, items: [] };
+    state.slots.push(s); state.active = s.id; save(); renderAll();
   });
 
   document.getElementById('clear').addEventListener('click', function(){
     state.slots.forEach(function(s){ s.items = []; });
-    save(); render(); renderHeader();
+    save(); renderAll();
+  });
+
+  document.getElementById('copy').addEventListener('click', function(){
+    var lines = [];
+    state.slots.forEach(function(s){
+      if (!s.items.length) return;
+      lines.push(s.name + ' — ' + eur(slotTotal(s)));
+      s.items.forEach(function(i){ lines.push('  ' + i.name + '  ' + eur(i.price)); });
+    });
+    lines.push('');
+    lines.push('Spent ' + eur(spent()) + ' of ' + eur(state.budget) + ' · ' + eur(remaining()) + ' left');
+    var btn = this;
+    function ok(){ btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = 'Copy list'; }, 1500); }
+    if (navigator.clipboard) navigator.clipboard.writeText(lines.join('\n')).then(ok, ok); else ok();
   });
 
   var refreshBtn = document.getElementById('refresh');
   refreshBtn.addEventListener('click', function(){
-    refreshBtn.disabled = true;
-    refreshBtn.textContent = 'Refreshing…';
+    refreshBtn.disabled = true; refreshBtn.textContent = 'Refreshing…';
     fetch('/api/refresh', { method: 'POST' }).catch(function(){});
     poll();
   });
@@ -327,26 +413,22 @@
   function poll(){
     fetch('/api/stats').then(function(r){ return r.json(); }).then(function(d){
       if (d.refresh && d.refresh.running){
-        metaEl.textContent = 'crawling Glovo… ' + (d.refresh.count || 0) + ' products so far';
+        document.getElementById('meta').textContent = 'crawling Glovo… ' + (d.refresh.count || 0) + ' products so far';
         setTimeout(poll, 1500);
       } else {
-        refreshBtn.disabled = false;
-        refreshBtn.textContent = 'Refresh prices';
-        if (d.refresh && d.refresh.error){
-          metaEl.textContent = 'refresh failed: ' + d.refresh.error;
-        } else {
-          metaEl.textContent = 'Auchan, Castelo Branco · ' + d.products + ' products · updated ' +
+        refreshBtn.disabled = false; refreshBtn.textContent = 'Refresh prices';
+        document.getElementById('meta').textContent = d.refresh && d.refresh.error
+          ? 'refresh failed: ' + d.refresh.error
+          : 'Auchan, Castelo Branco · ' + d.products.toLocaleString() + ' products · updated ' +
             new Date(d.updated).toLocaleTimeString();
-        }
-        state.slots.forEach(refreshResults);
+        if (state._loaded) { loadSections(); loadProducts(true); }
+        state._loaded = true;
       }
-    }).catch(function(){
-      refreshBtn.disabled = false;
-      refreshBtn.textContent = 'Refresh prices';
-    });
+    }).catch(function(){ refreshBtn.disabled = false; refreshBtn.textContent = 'Refresh prices'; });
   }
 
-  render();
+  loadSections();
+  renderAll();
   poll();
 })();
 </script>
