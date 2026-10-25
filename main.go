@@ -28,7 +28,7 @@ import (
 	"time"
 )
 
-//go:embed index.html
+//go:embed index.html hero.jpg
 var pageFS embed.FS
 
 const (
@@ -680,6 +680,16 @@ func main() {
 		}
 		b, _ := pageFS.ReadFile("index.html")
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write(b)
+	})
+	http.HandleFunc("/hero.jpg", func(w http.ResponseWriter, r *http.Request) {
+		b, err := pageFS.ReadFile("hero.jpg")
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "image/jpeg")
+		w.Header().Set("Cache-Control", "public, max-age=86400")
 		_, _ = w.Write(b)
 	})
 	http.HandleFunc("/api/products", handleProducts)
