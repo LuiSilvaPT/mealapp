@@ -41,13 +41,195 @@ const (
 )
 
 type Product struct {
-	Name     string  `json:"name"`
-	Price    float64 `json:"price"`
-	Unit     string  `json:"unit"`
-	Weighted bool    `json:"weighted"`
-	Section  string  `json:"section"`
-	ExtID    string  `json:"extId"`
-	ImageURL string  `json:"imageUrl"`
+	Name     string   `json:"name"`
+	Price    float64  `json:"price"`
+	Unit     string   `json:"unit"`
+	Weighted bool     `json:"weighted"`
+	Section  string   `json:"section"`
+	ExtID    string   `json:"extId"`
+	ImageURL string   `json:"imageUrl"`
+	Meals    []string `json:"meals"`
+}
+
+// ---- which meals a product belongs to ----------------------------------------
+
+var sectionMeals = map[string][]string{
+	// breakfast
+	"Cereais e Barras":                     {"breakfast", "snack"},
+	"Iogurtes Sólidos":                     {"breakfast", "snack"},
+	"Iogurtes Líquidos":                    {"breakfast", "snack"},
+	"Alternativas ao Iogurte":              {"breakfast", "snack"},
+	"Bebidas Lácteas":                      {"breakfast"},
+	"Chá, Achocolatados e Bebidas Cereais": {"breakfast"},
+	"Café":                                 {"breakfast"},
+	"Pão":                                  {"breakfast", "lunch", "dinner"},
+	"Tostas, Gressinos e Croutons":         {"breakfast", "snack"},
+	"Queijos":                              {"breakfast", "lunch", "dinner"},
+	"Charcutaria":                          {"breakfast", "lunch", "dinner"},
+	"Compotas, Cremes e Mel":               {"breakfast"},
+	"Manteiga e Cremes Culinários":         {"breakfast", "lunch", "dinner"},
+	"Croissants, Folhados e Brioches":      {"breakfast", "snack"},
+	"Pastelaria":                           {"breakfast", "snack"},
+	"Ovos":                                 {"breakfast", "lunch", "dinner"},
+	"Fruta Fresca":                         {"breakfast", "snack"},
+	// savoury
+	"Arroz, Massa e Farinha":          {"lunch", "dinner"},
+	"Massas e Noodles":                {"lunch", "dinner"},
+	"Massas para Culinária":           {"lunch", "dinner"},
+	"Batatas e Purés":                 {"lunch", "dinner"},
+	"Legumes Frescos":                 {"lunch", "dinner"},
+	"Frutas e Legumes":                {"lunch", "dinner"},
+	"Conservas":                       {"lunch", "dinner"},
+	"Leguminosas Secas":               {"lunch", "dinner"},
+	"Sal e Temperos":                  {"lunch", "dinner"},
+	"Azeite, Óleo e Vinagre":          {"lunch", "dinner"},
+	"Ketchup e Molhos":                {"lunch", "dinner"},
+	"Natas e Bechamel":                {"lunch", "dinner"},
+	"Sopas e Saladas":                 {"dinner", "lunch"},
+	"Salada, Preparados e Salteados":  {"lunch", "dinner"},
+	"Refeições Frescas":               {"lunch", "dinner"},
+	"Refeições Congeladas":            {"lunch", "dinner"},
+	"Peixe e Marisco Congelados":      {"lunch", "dinner"},
+	"Talho Congelado":                 {"lunch", "dinner"},
+	"Pizzas":                          {"lunch", "dinner"},
+	"Hambúrgueres e Sandes":           {"lunch", "dinner"},
+	"Tábuas":                          {"lunch", "dinner"},
+	"Sabores do Mundo":                {"lunch", "dinner"},
+	"Salgados e Pastelaria":           {"snack", "lunch"},
+	"Opções Vegetarianas":             {"lunch", "dinner"},
+	"Vegetariano e Vegan":             {"lunch", "dinner"},
+	"Vegan e Veggie":                  {"lunch", "dinner"},
+	"Biológicos":                      {"breakfast", "lunch", "dinner", "snack"},
+	"Sem Glúten":                      {"breakfast", "lunch", "dinner", "snack"},
+	"Sem Lactose":                     {"breakfast", "lunch", "dinner", "snack"},
+	"Aves e Coelho":                   {"lunch", "dinner"},
+	"Bovino":                          {"lunch", "dinner"},
+	"Porco":                           {"lunch", "dinner"},
+	"Mais Carnes":                     {"lunch", "dinner"},
+	"Bacalhau":                        {"lunch", "dinner"},
+	"Peixe Fresco":                    {"lunch", "dinner"},
+	"Filetes, Lombos e Postas":        {"lunch", "dinner"},
+	"Marisco":                         {"lunch", "dinner"},
+	"Salmão Fumado e Caviar":          {"breakfast", "lunch"},
+	"Salmão Fumado e Especialidades":  {"breakfast", "lunch"},
+	// snacks
+	"Bolachas e Biscoitos":                {"snack", "breakfast"},
+	"Biscoitos Tradicionais e Bolachas":   {"snack", "breakfast"},
+	"Batatas Fritas e Snacks":             {"snack"},
+	"Frutos Secos, Desidratados e Sementes": {"snack", "breakfast"},
+	"Gelados e Tartes Geladas":            {"snack"},
+	"Sobremesas Congeladas":               {"snack"},
+	"Gomas, Pastilhas e Rebuçados":        {"snack"},
+	"Chocolates":                          {"snack"},
+	"Bolos e Sobremesas":                  {"snack"},
+	"Sobremesas":                          {"snack"},
+	"Aperitivos e Salgados":               {"snack"},
+	"Nutrição Desportiva":                 {"snack"},
+	"Bebidas Energéticas e Isotónicas":    {"snack"},
+	"Refrigerantes":                       {"snack"},
+	"Água":                                {"snack"},
+	"Gelo":                                {"snack"},
+}
+
+var mealKeywords = map[string][]string{
+	"breakfast": {"leite", "iogurte", "cereal", "muesli", "granola", "aveia", "torrada",
+		"tosta", "pão", "café", "marmelada", "compota", "mel", "manteiga", "queijo",
+		"fiambre", "croissant", "brioche", "ovo", "chá", "cacau", "bolacha maria"},
+	"lunch": {"arroz", "massa", "esparguete", "penne", "frango", "carne", "bife",
+		"bacalhau", "atum", "sardinha", "feijão", "grão", "batata", "legumes",
+		"salsicha", "chouriço", "porco", "peru", "salmão"},
+	"dinner": {"sopa", "caldo", "creme de legumes", "arroz", "massa", "bacalhau",
+		"atum", "sardinha", "feijão", "frango", "batata", "legumes", "peixe"},
+	"snack": {"bolacha", "gelado", "chocolate", "gomas", "batata frita", "frutos secos",
+		"amendoim", "barra", "biscoito"},
+}
+
+func classify(p Product) []string {
+	set := map[string]bool{}
+	for _, m := range sectionMeals[p.Section] {
+		set[m] = true
+	}
+	padded := words(p.Name)
+	for meal, kws := range mealKeywords {
+		if hasAnyWord(padded, kws) {
+			set[meal] = true
+		}
+	}
+	out := make([]string, 0, 4)
+	for _, m := range []string{"breakfast", "lunch", "dinner", "snack"} {
+		if set[m] {
+			out = append(out, m)
+		}
+	}
+	return out
+}
+
+// ---- pantry staples: things you probably already have -------------------------
+
+type stapleDef struct {
+	Key       string   `json:"key"`
+	Label     string   `json:"label"`
+	Find      []string `json:"-"`
+	In        []string `json:"-"`
+	ImpliedBy []string `json:"impliedBy"`
+}
+
+var stapleDefs = []stapleDef{
+	{"sal", "Salt", []string{"sal"}, []string{"Sal e Temperos"}, []string{"Arroz, Massa e Farinha", "Legumes Frescos", "Ovos", "Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco", "Massas e Noodles"}},
+	{"azeite", "Olive oil", []string{"azeite"}, []string{"Azeite, Óleo e Vinagre"}, []string{"Arroz, Massa e Farinha", "Legumes Frescos", "Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco", "Massas e Noodles", "Batatas e Purés"}},
+	{"alho", "Garlic", []string{"alho"}, []string{"Sal e Temperos", "Legumes Frescos"}, []string{"Aves e Coelho", "Porco", "Bovino", "Legumes Frescos", "Arroz, Massa e Farinha"}},
+	{"cebola", "Onion", []string{"cebola"}, []string{"Legumes Frescos"}, []string{"Aves e Coelho", "Porco", "Bovino", "Legumes Frescos", "Arroz, Massa e Farinha"}},
+	{"pimenta", "Pepper", []string{"pimenta"}, []string{"Sal e Temperos"}, []string{"Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco"}},
+	{"farinha", "Flour", []string{"farinha"}, []string{"Arroz, Massa e Farinha"}, []string{"Batatas e Purés", "Sopas e Saladas"}},
+	{"acucar", "Sugar", []string{"acucar"}, []string{"Açúcar e Sobremesas", "Arroz, Massa e Farinha"}, []string{"Café", "Cereais e Barras"}},
+	{"vinagre", "Vinegar", []string{"vinagre"}, []string{"Azeite, Óleo e Vinagre"}, []string{"Legumes Frescos", "Salada, Preparados e Salteados"}},
+	{"louro", "Bay leaf", []string{"louro"}, []string{"Sal e Temperos"}, []string{"Sopas e Saladas", "Aves e Coelho"}},
+	{"oregaos", "Oregano", []string{"oregaos", "oregãos"}, []string{"Sal e Temperos"}, []string{"Pizzas", "Massas e Noodles"}},
+}
+
+func handleStaples(w http.ResponseWriter, r *http.Request) {
+	type offer struct {
+		Name  string  `json:"name"`
+		Price float64 `json:"price"`
+	}
+	type out struct {
+		Key       string   `json:"key"`
+		Label     string   `json:"label"`
+		ImpliedBy []string `json:"impliedBy"`
+		Product   *offer   `json:"product"`
+	}
+	mu.RLock()
+	defer mu.RUnlock()
+	res := make([]out, 0, len(stapleDefs))
+	for _, d := range stapleDefs {
+		o := out{Key: d.Key, Label: d.Label, ImpliedBy: d.ImpliedBy}
+		best := -1
+		for i, p := range products {
+			if len(d.In) > 0 {
+				ok := false
+				for _, sec := range d.In {
+					if p.Section == sec {
+						ok = true
+						break
+					}
+				}
+				if !ok {
+					continue
+				}
+			}
+			if !hasAnyWord(words(p.Name), d.Find) {
+				continue
+			}
+			if best < 0 || p.Price < products[best].Price {
+				best = i
+			}
+		}
+		if best >= 0 {
+			o.Product = &offer{products[best].Name, products[best].Price}
+		}
+		res = append(res, o)
+	}
+	writeJSON(w, map[string]any{"staples": res})
 }
 
 // ---- tile schema of the Glovo content API -------------------------------------
@@ -99,8 +281,9 @@ var (
 
 func setProducts(p []Product) {
 	folded := make([]string, len(p))
-	for i, x := range p {
-		folded[i] = fold(x.Name + " " + x.Section)
+	for i := range p {
+		p[i].Meals = classify(p[i])
+		folded[i] = fold(p[i].Name + " " + p[i].Section)
 	}
 	mu.Lock()
 	products, search, updated = p, folded, time.Now()
@@ -328,6 +511,33 @@ var accent = strings.NewReplacer(
 
 func fold(s string) string { return accent.Replace(strings.ToLower(s)) }
 
+// words turns a string into a space-padded run of lowercase words, so keyword
+// matching can't hit substrings ("mel" must not match "Mélias").
+func words(s string) string {
+	var b strings.Builder
+	b.WriteByte(' ')
+	for _, r := range fold(s) {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
+		} else {
+			b.WriteByte(' ')
+		}
+	}
+	b.WriteByte(' ')
+	return b.String()
+}
+
+func hasWord(padded, w string) bool { return strings.Contains(padded, " "+w+" ") }
+
+func hasAnyWord(padded string, ws []string) bool {
+	for _, w := range ws {
+		if hasWord(padded, w) {
+			return true
+		}
+	}
+	return false
+}
+
 func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	_ = json.NewEncoder(w).Encode(v)
@@ -338,6 +548,7 @@ func writeJSON(w http.ResponseWriter, v any) {
 func handleProducts(w http.ResponseWriter, r *http.Request) {
 	q := fold(strings.TrimSpace(r.URL.Query().Get("q")))
 	section := r.URL.Query().Get("section")
+	meal := r.URL.Query().Get("meal")
 	maxPrice, _ := strconv.ParseFloat(r.URL.Query().Get("max"), 64)
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
@@ -352,6 +563,18 @@ func handleProducts(w http.ResponseWriter, r *http.Request) {
 	for i, p := range products {
 		if section != "" && p.Section != section {
 			continue
+		}
+		if meal != "" {
+			found := false
+			for _, m := range p.Meals {
+				if m == meal {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
 		}
 		if maxPrice > 0 && p.Price > maxPrice {
 			continue
@@ -461,6 +684,7 @@ func main() {
 	})
 	http.HandleFunc("/api/products", handleProducts)
 	http.HandleFunc("/api/sections", handleSections)
+	http.HandleFunc("/api/staples", handleStaples)
 	http.HandleFunc("/api/stats", handleStats)
 	http.HandleFunc("/api/refresh", handleRefresh)
 
