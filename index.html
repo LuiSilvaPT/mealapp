@@ -174,10 +174,10 @@
     <img src="/hero.jpg" alt="" width="1440" height="480">
     <div class="veil"></div>
     <div class="copy">
-      <h2>Fill your week,<br>stay inside €39</h2>
+      <h2>Fill your week,<br>stay inside <span id="herobudget">€39</span></h2>
       <p>Pick a meal, and we only show food that suits it and fits the money you have left. Tell us what's already in your cupboard and we won't charge you for it.</p>
       <div class="pills">
-        <span class="pill">6,400 products, live prices</span>
+        <span class="pill"><span id="herocount">6,400</span> products, live prices</span>
         <span class="pill">Breakfast · Lunch · Dinner · Snack</span>
         <span class="pill">Pantry-aware</span>
       </div>
@@ -279,6 +279,8 @@
     document.getElementById('spent').textContent = 'spent ' + eur(sp);
     document.getElementById('sum-spent').textContent = eur(sp);
     document.getElementById('sum-left').textContent = eur(rem);
+    var hb = document.getElementById('herobudget');
+    if (hb) hb.textContent = state.budget % 1 === 0 ? '€' + state.budget : eur(state.budget);
     var pct = state.budget > 0 ? Math.max(0, Math.min(100, sp / state.budget * 100)) : 0;
     var bar = document.getElementById('bar');
     bar.style.width = pct + '%';
@@ -574,6 +576,8 @@
           ? 'refresh failed: ' + d.refresh.error
           : 'Auchan, Castelo Branco · ' + d.products.toLocaleString() + ' products · updated ' +
             new Date(d.updated).toLocaleTimeString();
+        var hc = document.getElementById('herocount');
+        if (hc) hc.textContent = d.products.toLocaleString();
         if (state._loaded) { loadStaples(); loadProducts(true); }
         state._loaded = true;
       }
