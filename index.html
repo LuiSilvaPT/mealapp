@@ -32,7 +32,6 @@
   :focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:var(--r-sm)}
   .wrap{max-width:1280px;margin:0 auto;padding:0 22px}
 
-  /* ---------- sticky bar ---------- */
   header{position:sticky;top:0;z-index:30;background:var(--bg);box-shadow:var(--shadow-1)}
   header .bar{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap;padding:10px 0}
   h1{font-size:.95rem;margin:0;font-weight:700;white-space:nowrap}
@@ -52,7 +51,6 @@
   .toggle{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--text-2);user-select:none}
   .toggle input{accent-color:var(--accent);width:16px;height:16px}
 
-  /* ---------- hero ---------- */
   .hero{position:relative;margin:var(--s5) 0 var(--s6);border-radius:var(--r-lg);overflow:hidden;background:var(--surface-2)}
   .hero img{width:100%;height:290px;object-fit:cover;object-position:center right}
   .hero .veil{position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,18,15,.88) 0%,rgba(20,18,15,.72) 38%,rgba(20,18,15,.15) 72%,rgba(20,18,15,0) 100%)}
@@ -69,11 +67,9 @@
     .hero p{font-size:.88rem}
   }
 
-  /* ---------- layout ---------- */
-  .app{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:var(--s6);align-items:start;padding-bottom:var(--s7)}
+  .app{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:var(--s6);align-items:start;padding-bottom:var(--s7)}
   @media (max-width:1080px){ .app{grid-template-columns:1fr} }
 
-  /* ---------- meal tabs ---------- */
   .mealtabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);padding:5px;margin-bottom:var(--s4);overflow-x:auto;scrollbar-width:none}
   .mealtabs::-webkit-scrollbar{display:none}
   .mealtabs button{flex:1 0 auto;white-space:nowrap;font-size:.85rem;font-weight:700;padding:9px 16px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--text-2)}
@@ -86,7 +82,6 @@
   .count{color:var(--text-3);font-size:.8rem;margin:0 0 var(--s4)}
   .count b{color:var(--text-2)}
 
-  /* ---------- cards ---------- */
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:var(--s4)}
   .card{display:flex;flex-direction:column;text-align:left;padding:0;overflow:hidden;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease}
   .card:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);border-color:var(--accent)}
@@ -104,7 +99,6 @@
   .card.over:hover{transform:none;box-shadow:none;border-color:var(--border)}
   .more{display:flex;justify-content:center;margin-top:var(--s5)}
 
-  /* ---------- basket ---------- */
   .basket{position:sticky;top:72px;background:var(--surface);border-radius:var(--r-md);padding:var(--s4);box-shadow:var(--shadow-1)}
   @media (max-width:1080px){ .basket{position:static} }
   .basket h2{font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;color:var(--text-3);margin:0 0 var(--s3);font-weight:700}
@@ -130,24 +124,56 @@
   .stotal{display:flex;justify-content:space-between;font-size:.78rem;color:var(--text-2);margin-top:8px;padding-top:7px;border-top:1px solid var(--border)}
   .stotal b{font-variant-numeric:tabular-nums;color:var(--text)}
 
-  .pantry{margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--border)}
-  .ask{background:var(--accent-050);border:1px solid var(--accent);border-radius:var(--r-sm);padding:11px 13px;margin-bottom:8px}
-  .ask .q{font-size:.87rem;font-weight:700;margin-bottom:2px}
-  .ask .why{font-size:.74rem;color:var(--text-2);margin-bottom:9px}
-  .ask .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-  .have{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
-  .have .tag{font-size:.74rem;font-weight:600;background:var(--ok-bg);color:var(--ok);border-radius:var(--r-pill);padding:4px 10px;display:inline-flex;gap:6px;align-items:center}
-  .have .tag.buy{background:var(--surface-2);color:var(--text-2)}
-  .have .tag button{border:none;background:transparent;color:inherit;font-size:.9rem;line-height:1;padding:0 2px;opacity:.7}
-  .have .tag button:hover{opacity:1}
+  /* pantry — deliberately not a meal */
+  .pantry{margin-top:var(--s4);padding:var(--s4);background:var(--bg);border:1px dashed var(--border);border-radius:var(--r-md)}
+  .pantry h2{display:flex;align-items:center;gap:8px;margin-bottom:var(--s2)}
+  .pantry .sub{font-size:.74rem;color:var(--text-3);margin:0 0 var(--s3)}
+  .prow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dotted var(--border)}
+  .prow:last-of-type{border-bottom:none}
+  .prow .pl{flex:1;min-width:0}
+  .prow .pl b{display:block;font-size:.86rem;font-weight:650}
+  .prow .pl span{display:block;font-size:.73rem;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .prow .st{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;border-radius:var(--r-pill);padding:4px 10px;white-space:nowrap}
+  .prow .st.have{background:var(--ok-bg);color:var(--ok)}
+  .prow .st.buy{background:var(--accent-050);color:var(--accent-600)}
+  .prow .go{font-size:.76rem;font-weight:700;color:var(--accent-600);background:transparent;border:none;padding:4px 6px}
+  .prow.pending{background:var(--accent-050);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:6px;border-bottom:none;cursor:pointer}
+  .prow.pending:hover{filter:brightness(.98)}
+  .prow.pending .pl b{font-size:.88rem}
+  .pantrytotal{display:flex;justify-content:space-between;font-size:.78rem;color:var(--text-2);margin-top:10px;padding-top:8px;border-top:1px solid var(--border)}
+  .pantrytotal b{font-variant-numeric:tabular-nums;color:var(--text)}
 
   .summary{margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--border)}
   .srow{display:flex;justify-content:space-between;font-size:.86rem;color:var(--text-2);margin-bottom:5px}
   .srow b{font-variant-numeric:tabular-nums;color:var(--text)}
-  .track{height:7px;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden;margin:9px 0 4px}
+  .srow.sub{font-size:.78rem;color:var(--text-3)}
+  .track{height:7px;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden;margin:10px 0 4px}
   .track i{display:block;height:100%;width:0;background:var(--ok);transition:width .18s ease}
   .track i.over{background:var(--over)}
   .hint{font-size:.74rem;color:var(--text-3);margin-top:6px}
+
+  .notice{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:40;background:var(--text);color:var(--bg);font-size:.84rem;font-weight:600;padding:11px 18px;border-radius:var(--r-pill);box-shadow:var(--shadow-2);opacity:0;pointer-events:none;transition:opacity .18s ease}
+  .notice.show{opacity:1}
+
+  dialog{border:none;padding:0;border-radius:var(--r-md);background:var(--bg);color:var(--text);box-shadow:var(--shadow-2);max-width:430px;width:calc(100% - 32px)}
+  dialog::backdrop{background:rgba(20,18,15,.55)}
+  .dlg{padding:24px 26px 22px}
+  .dlg .kind{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--accent-600);margin-bottom:6px}
+  .dlg h3{margin:0 0 8px;font-size:1.25rem;letter-spacing:-.01em}
+  .dlg p{margin:0 0 14px;font-size:.88rem;color:var(--text-2)}
+  .dlg .used{background:var(--surface);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:14px}
+  .dlg .used .k{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:700;margin-bottom:5px}
+  .dlg .used ul{margin:0;padding-left:18px}
+  .dlg .used li{font-size:.82rem;color:var(--text-2)}
+  .dlg .prod{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;margin-bottom:14px}
+  .dlg .prod .pn{font-size:.85rem;font-weight:600;min-width:0}
+  .dlg .prod .pp{font-variant-numeric:tabular-nums;font-weight:800;color:var(--accent-600);white-space:nowrap}
+  .dlg .actions{display:flex;flex-direction:column;gap:8px}
+  .dlg .actions button{width:100%;padding:12px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface);font-weight:700;font-size:.88rem}
+  .dlg .actions button:hover{background:var(--surface-2)}
+  .dlg .actions button.go{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .dlg .actions button.go{color:#1A1512} }
+  .dlg .actions button.quiet{border-color:transparent;background:transparent;color:var(--text-3);font-weight:600}
   footer{border-top:1px solid var(--border);padding-top:var(--s4);color:var(--text-3);font-size:.78rem}
 </style>
 </head>
@@ -202,13 +228,15 @@
       <button class="btn" id="addslot" style="width:100%;margin-top:6px">+ Add a slot</button>
 
       <div class="pantry" id="pantrywrap" hidden>
-        <h2>Do you already have these?</h2>
-        <div id="asks"></div>
-        <div class="have" id="haves"></div>
+        <h2>Pantry</h2>
+        <p class="sub">Things you cook with, not meals. They sit outside your meal slots.</p>
+        <div id="prows"></div>
+        <div class="pantrytotal" id="pantrytotal"></div>
       </div>
 
       <div class="summary">
-        <div class="srow"><span>Spent</span><b id="sum-spent">€0.00</b></div>
+        <div class="srow"><span>Meals</span><b id="sum-meals">€0.00</b></div>
+        <div class="srow sub" id="row-pantry"><span>Pantry</span><b id="sum-pantry">€0.00</b></div>
         <div class="srow"><span>Remaining</span><b id="sum-left">€39.00</b></div>
         <div class="track"><i id="bar"></i></div>
         <div class="hint" id="hint"></div>
@@ -226,9 +254,15 @@
   </footer>
 </div>
 
+<div class="notice" id="notice"></div>
+
+<dialog id="ask">
+  <div class="dlg" id="askbody"></div>
+</dialog>
+
 <script>
 (function(){
-  var STORE = 'mealapp-v4', PAGE = 24;
+  var STORE = 'mealapp-v5', PAGE = 24;
   var MEALS = [
     { key: '',          label: 'All' },
     { key: 'breakfast', label: 'Breakfast' },
@@ -238,10 +272,14 @@
   ];
   function uid(){ return Math.random().toString(36).slice(2,9); }
   function eur(n){ return '€' + (Math.round(n*100)/100).toFixed(2); }
-  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  function fold(s){
+    return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  }
+  function words(s){ return ' ' + fold(s).replace(/[^a-z0-9]+/g,' ') + ' '; }
 
   var state = load() || {
-    budget: 39, active: null, showAll: false, meal: '', pantry: {},
+    budget: 39, active: null, showAll: false, meal: '',
+    pantry: {}, pantryItems: {},
     slots: [
       { id: uid(), name: 'Breakfast', cap: 3, items: [] },
       { id: uid(), name: 'Lunch',     cap: 6, items: [] },
@@ -250,6 +288,7 @@
     ]
   };
   if (!state.pantry) state.pantry = {};
+  if (!state.pantryItems) state.pantryItems = {};
   if (!state.slots.length) state.slots.push({ id: uid(), name: 'Meals', cap: null, items: [] });
   if (!state.active || !state.slots.some(function(s){ return s.id === state.active; })) state.active = state.slots[0].id;
 
@@ -258,7 +297,13 @@
 
   function slotById(id){ return state.slots.filter(function(s){ return s.id === id; })[0]; }
   function slotTotal(s){ return s.items.reduce(function(a,i){ return a + i.price; }, 0); }
-  function spent(){ return state.slots.reduce(function(a,s){ return a + slotTotal(s); }, 0); }
+  function mealsCost(){ return state.slots.reduce(function(a,s){ return a + slotTotal(s); }, 0); }
+  function pantryCost(){
+    var t = 0;
+    for (var k in state.pantry) if (state.pantry[k] === 'buy' && state.pantryItems[k]) t += state.pantryItems[k].price;
+    return t;
+  }
+  function spent(){ return mealsCost() + pantryCost(); }
   function remaining(){ return state.budget - spent(); }
   function slotRoom(s){ var c = parseFloat(s.cap); return (isNaN(c) || c <= 0) ? Infinity : c - slotTotal(s); }
   function affordable(){ var s = slotById(state.active); return Math.min(remaining(), s ? slotRoom(s) : Infinity); }
@@ -267,27 +312,38 @@
   var gridEl = document.getElementById('grid'), countEl = document.getElementById('count');
   var slotsEl = document.getElementById('slots'), slotbarEl = document.getElementById('slotbar');
   var moreWrap = document.getElementById('morewrap'), tabsEl = document.getElementById('mealtabs');
+  var askDlg = document.getElementById('ask'), askBody = document.getElementById('askbody');
   var filter = { q: '' };
-  var shown = 0;
-  var STAPLES = [];
+  var shown = 0, STAPLES = [], lastPending = [];
+
+  function notice(msg){
+    var n = document.getElementById('notice');
+    n.textContent = msg; n.classList.add('show');
+    clearTimeout(n._t); n._t = setTimeout(function(){ n.classList.remove('show'); }, 2200);
+  }
 
   function renderMoney(){
-    var rem = remaining(), sp = spent();
+    var rem = remaining(), meals = mealsCost(), pan = pantryCost();
     var left = document.getElementById('left');
     left.textContent = eur(rem) + (rem < 0 ? ' over' : ' left');
     left.className = 'left' + (rem < 0 ? ' over' : '');
-    document.getElementById('spent').textContent = 'spent ' + eur(sp);
-    document.getElementById('sum-spent').textContent = eur(sp);
+    document.getElementById('spent').textContent = 'spent ' + eur(spent());
+    document.getElementById('sum-meals').textContent = eur(meals);
+    document.getElementById('sum-pantry').textContent = eur(pan);
+    document.getElementById('row-pantry').hidden = pan <= 0;
     document.getElementById('sum-left').textContent = eur(rem);
     var hb = document.getElementById('herobudget');
     if (hb) hb.textContent = state.budget % 1 === 0 ? '€' + state.budget : eur(state.budget);
-    var pct = state.budget > 0 ? Math.max(0, Math.min(100, sp / state.budget * 100)) : 0;
+    var pct = state.budget > 0 ? Math.max(0, Math.min(100, spent() / state.budget * 100)) : 0;
     var bar = document.getElementById('bar');
     bar.style.width = pct + '%';
     bar.className = rem < 0 ? 'over' : '';
-    document.getElementById('hint').textContent = rem < 0
-      ? 'Over budget by ' + eur(-rem)
-      : eur(rem) + ' still to spend.';
+
+    var filled = state.slots.filter(function(s){ return s.items.length; }).length;
+    var hint = rem < 0 ? 'Over budget by ' + eur(-rem)
+      : filled ? eur(rem) + ' left for ' + filled + ' meal' + (filled === 1 ? '' : 's')
+      : eur(rem) + ' to spend — start with breakfast.';
+    document.getElementById('hint').textContent = hint;
   }
 
   function renderTabs(){
@@ -297,15 +353,9 @@
       b.type = 'button';
       b.className = state.meal === m.key ? 'on' : '';
       b.textContent = m.label;
-      b.addEventListener('click', function(){ state.meal = m.key; save(); renderTabs(); renderHead(); loadProducts(true); });
+      b.addEventListener('click', function(){ state.meal = m.key; save(); renderTabs(); loadProducts(true); });
       tabsEl.appendChild(b);
     });
-  }
-
-  function renderHead(){
-    var s = slotById(state.active);
-    document.getElementById('baskethead').textContent =
-      s ? 'Adding to: ' + s.name : 'Your meals';
   }
 
   function loadProducts(reset){
@@ -362,17 +412,20 @@
   function addItem(p){
     var s = slotById(state.active);
     if (!s || p.price > remaining()) return;
+    if (s.items.some(function(i){ return i.name === p.name; })){
+      notice('Already in ' + s.name + '.');
+      return;
+    }
     s.items.push({ name: p.name, price: p.price, section: p.section });
-    save(); renderAll();
-  }
-
-  function pantrySlot(){
-    var s = state.slots.filter(function(x){ return x.name === 'Pantry'; })[0];
-    if (!s) { s = { id: uid(), name: 'Pantry', cap: null, items: [] }; state.slots.push(s); }
-    return s;
+    save();
+    notice(p.name.slice(0, 34) + (p.name.length > 34 ? '…' : '') + ' → ' + s.name);
+    renderAll();
   }
 
   function renderBasket(){
+    document.getElementById('baskethead').textContent =
+      (slotById(state.active) ? 'Adding to: ' + slotById(state.active).name : 'Your meals');
+
     slotbarEl.innerHTML = '';
     state.slots.forEach(function(s){
       var c = document.createElement('button');
@@ -383,7 +436,7 @@
         state.active = s.id; save();
         var guess = s.name.trim().toLowerCase();
         if (['breakfast','lunch','dinner','snack'].indexOf(guess) >= 0) state.meal = guess;
-        renderTabs(); renderHead(); renderAll();
+        renderTabs(); renderAll();
       });
       slotbarEl.appendChild(c);
     });
@@ -395,7 +448,7 @@
       var top = document.createElement('div'); top.className = 'top';
       var nm = document.createElement('input');
       nm.className = 'name'; nm.value = s.name; nm.setAttribute('aria-label','Slot name');
-      nm.addEventListener('input', function(){ s.name = nm.value; save(); renderBasket(); renderHead(); });
+      nm.addEventListener('input', function(){ s.name = nm.value; save(); renderBasket(); });
       var capWrap = document.createElement('span'); capWrap.className = 'cap'; capWrap.textContent = 'cap €';
       var capEl = document.createElement('input');
       capEl.type = 'number'; capEl.min = '0'; capEl.step = '1'; capEl.value = s.cap == null ? '' : s.cap;
@@ -408,7 +461,7 @@
         state.slots = state.slots.filter(function(o){ return o.id !== s.id; });
         if (!state.slots.length) state.slots.push({ id: uid(), name: 'Meals', cap: null, items: [] });
         if (state.active === s.id) state.active = state.slots[0].id;
-        save(); renderAll(); renderHead();
+        save(); renderAll();
       });
       top.append(nm, capWrap, x);
 
@@ -441,79 +494,132 @@
     });
   }
 
-  function renderPantry(){
-    var wrap = document.getElementById('pantrywrap');
-    var asks = document.getElementById('asks'), haves = document.getElementById('haves');
-    asks.innerHTML = ''; haves.innerHTML = '';
-
-    var sections = {};
-    allItems().forEach(function(i){ if (i.section) sections[i.section] = true; });
-    var needed = STAPLES.filter(function(st){
-      return (st.impliedBy || []).some(function(s){ return sections[s]; });
-    });
-    if (!needed.length){ wrap.hidden = true; return; }
-    wrap.hidden = false;
-
-    needed.forEach(function(st){
-      var status = state.pantry[st.key];
-      if (status === 'have'){
-        haves.appendChild(tag(st.label + ' · you have it', 'have', st.key));
-      } else if (status === 'buy'){
-        haves.appendChild(tag(st.label + ' · in the list', 'buy', st.key));
-      } else if (st.product){
-        var box = document.createElement('div'); box.className = 'ask';
-        var q = document.createElement('div'); q.className = 'q'; q.textContent = 'Do you have ' + st.label.toLowerCase() + '?';
-        var why = document.createElement('div'); why.className = 'why';
-        why.textContent = 'Your meals use ' + st.impliedBy.slice(0,2).join(' or ').toLowerCase() + '.';
-        var row = document.createElement('div'); row.className = 'row';
-        var yes = document.createElement('button');
-        yes.className = 'btn tiny primary'; yes.type = 'button'; yes.textContent = 'Yes, I have it';
-        yes.addEventListener('click', function(){ state.pantry[st.key] = 'have'; save(); renderAll(); });
-        var no = document.createElement('button');
-        no.className = 'btn tiny'; no.type = 'button';
-        no.textContent = 'No — add ' + eur(st.product.price);
-        no.title = st.product.name;
-        no.addEventListener('click', function(){
-          state.pantry[st.key] = 'buy';
-          var ps = pantrySlot();
-          if (!ps.items.some(function(i){ return i.name === st.product.name; }))
-            ps.items.push({ name: st.product.name, price: st.product.price, section: 'Pantry' });
-          save(); renderAll();
-        });
-        row.append(yes, no);
-        box.append(q, why, row);
-        asks.appendChild(box);
+  /* ---------- pantry: works out what your meals need ---------- */
+  function triggersFor(st){
+    var hits = [];
+    allItems().forEach(function(i){
+      var w = words(i.name);
+      if ((st.triggers || []).some(function(t){ return w.indexOf(' ' + t + ' ') >= 0; })){
+        if (hits.indexOf(i.name) < 0) hits.push(i.name);
       }
     });
+    return hits;
   }
 
-  function tag(text, kind, key){
-    var t = document.createElement('span');
-    t.className = 'tag' + (kind === 'buy' ? ' buy' : '');
-    t.textContent = text;
-    var b = document.createElement('button');
-    b.type = 'button'; b.textContent = '×'; b.title = 'Change';
-    b.addEventListener('click', function(){
-      if (state.pantry[key] === 'buy'){
-        var ps = state.slots.filter(function(x){ return x.name === 'Pantry'; })[0];
-        if (ps){
-          ps.items = ps.items.filter(function(i){
-            return !STAPLES.some(function(s){ return s.key === key && s.product && s.product.name === i.name; });
-          });
-          if (!ps.items.length) state.slots = state.slots.filter(function(x){ return x !== ps; });
-        }
-      }
-      delete state.pantry[key];
-      save(); renderAll();
+  function pendingStaples(){
+    return STAPLES.map(function(st){
+      return { st: st, hits: triggersFor(st) };
+    }).filter(function(x){ return x.hits.length && !state.pantry[x.st.key]; });
+  }
+
+  function renderPantry(){
+    var wrap = document.getElementById('pantrywrap');
+    var rows = document.getElementById('prows');
+    var total = document.getElementById('pantrytotal');
+    rows.innerHTML = '';
+
+    var pend = pendingStaples();
+    lastPending = pend;
+    var answered = STAPLES.filter(function(st){ return state.pantry[st.key]; });
+
+    if (!pend.length && !answered.length){ wrap.hidden = true; return; }
+    wrap.hidden = false;
+
+    pend.forEach(function(x, idx){
+      var r = document.createElement('div');
+      r.className = 'prow pending';
+      r.tabIndex = 0;
+      var pl = document.createElement('div'); pl.className = 'pl';
+      var b = document.createElement('b'); b.textContent = 'Do you have ' + x.st.label.toLowerCase() + '?';
+      var s = document.createElement('span');
+      s.textContent = 'Needed for ' + x.hits.slice(0,3).map(function(h){ return h.split(' ')[0].toLowerCase(); }).join(', ') +
+        (x.hits.length > 3 ? ' +' + (x.hits.length - 3) : '');
+      pl.append(b, s);
+      var go = document.createElement('button');
+      go.className = 'go'; go.type = 'button'; go.textContent = 'Answer →';
+      r.append(pl, go);
+      r.addEventListener('click', function(){ openAsk(x.st, x.hits); });
+      r.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openAsk(x.st, x.hits); } });
+      rows.appendChild(r);
     });
-    t.appendChild(b);
-    return t;
+
+    answered.forEach(function(st){
+      var isBuy = state.pantry[st.key] === 'buy';
+      var r = document.createElement('div'); r.className = 'prow';
+      var pl = document.createElement('div'); pl.className = 'pl';
+      var b = document.createElement('b'); b.textContent = st.label;
+      var s = document.createElement('span');
+      s.textContent = isBuy && state.pantryItems[st.key] ? state.pantryItems[st.key].name : 'You already have this';
+      pl.append(b, s);
+      var tagEl = document.createElement('span');
+      tagEl.className = 'st ' + (isBuy ? 'buy' : 'have');
+      tagEl.textContent = isBuy ? eur(state.pantryItems[st.key].price) : 'have it';
+      var chg = document.createElement('button');
+      chg.className = 'x'; chg.type = 'button'; chg.textContent = '×'; chg.title = 'Change';
+      chg.addEventListener('click', function(){ delete state.pantry[st.key]; delete state.pantryItems[st.key]; save(); renderAll(); });
+      r.append(pl, tagEl, chg);
+      rows.appendChild(r);
+    });
+
+    total.innerHTML = '<span>Pantry total</span><b>' + eur(pantryCost()) + '</b>';
+  }
+
+  function openAsk(st, hits){
+    if (!st.product){ notice('No product found for ' + st.label); return; }
+    askBody.innerHTML = '';
+
+    var kind = document.createElement('div'); kind.className = 'kind'; kind.textContent = 'Pantry check';
+    var h = document.createElement('h3'); h.textContent = 'Do you have ' + st.label.toLowerCase() + '?';
+    var p = document.createElement('p');
+    p.textContent = 'Your meals need it. If you already have some, we leave it out of the budget.';
+
+    var used = document.createElement('div'); used.className = 'used';
+    var k = document.createElement('div'); k.className = 'k'; k.textContent = 'Needed for';
+    var ul = document.createElement('ul');
+    hits.slice(0,5).forEach(function(x){ var li = document.createElement('li'); li.textContent = x; ul.appendChild(li); });
+    if (hits.length > 5){ var li2 = document.createElement('li'); li2.textContent = '+' + (hits.length - 5) + ' more'; ul.appendChild(li2); }
+    used.append(k, ul);
+
+    var prod = document.createElement('div'); prod.className = 'prod';
+    var pn = document.createElement('div'); pn.className = 'pn'; pn.textContent = st.product.name;
+    var pp = document.createElement('div'); pp.className = 'pp'; pp.textContent = eur(st.product.price);
+    prod.append(pn, pp);
+
+    var act = document.createElement('div'); act.className = 'actions';
+    var have = document.createElement('button');
+    have.className = 'go'; have.type = 'button'; have.textContent = 'I already have it';
+    have.addEventListener('click', function(){
+      state.pantry[st.key] = 'have'; delete state.pantryItems[st.key];
+      save(); askDlg.close(); renderAll(); notice(st.label + ' — marked as something you have.');
+    });
+    var buy = document.createElement('button');
+    buy.type = 'button';
+    buy.textContent = 'Add to pantry — ' + eur(st.product.price);
+    buy.addEventListener('click', function(){
+      state.pantry[st.key] = 'buy';
+      state.pantryItems[st.key] = { name: st.product.name, price: st.product.price };
+      save(); askDlg.close(); renderAll(); notice(st.product.name + ' added to the pantry.');
+    });
+    var later = document.createElement('button');
+    later.className = 'quiet'; later.type = 'button'; later.textContent = 'Not now';
+    later.addEventListener('click', function(){ askDlg.close(); });
+    act.append(have, buy, later);
+
+    askBody.append(kind, h, p, used, prod, act);
+    if (typeof askDlg.showModal === 'function') askDlg.showModal(); else askDlg.setAttribute('open','');
   }
 
   function renderAll(){ renderMoney(); renderBasket(); renderPantry(); loadProducts(true); }
 
   function loadStaples(){
-    fetch('/api/staples').then(function(r){ return r.json(); }).then(function(d){ STAPLES = d.staples || []; renderPantry(); }).catch(function(){});
+    fetch('/api/staples').then(function(r){ return r.json(); }).then(function(d){
+      STAPLES = d.staples || [];
+      renderPantry();
+      if (!state._greeted && STAPLES.length){
+        state._greeted = true;
+        setTimeout(function(){ if (pendingStaples().length) notice('Add an ingredient and we\'ll ask about the staples it needs.'); }, 1200);
+      }
+    }).catch(function(){});
   }
 
   var qEl = document.getElementById('q'), t;
@@ -536,23 +642,35 @@
 
   document.getElementById('addslot').addEventListener('click', function(){
     var s = { id: uid(), name: 'New slot', cap: null, items: [] };
-    state.slots.push(s); state.active = s.id; save(); renderAll(); renderHead();
+    state.slots.push(s); state.active = s.id; save(); renderAll();
   });
 
   document.getElementById('clear').addEventListener('click', function(){
     state.slots.forEach(function(s){ s.items = []; });
-    state.pantry = {}; save(); renderAll();
+    state.pantry = {}; state.pantryItems = {}; save(); renderAll();
   });
 
   document.getElementById('copy').addEventListener('click', function(){
-    var lines = [];
+    var lines = ['MEALS'];
     state.slots.forEach(function(s){
       if (!s.items.length) return;
       lines.push(s.name + ' — ' + eur(slotTotal(s)));
-      s.items.forEach(function(i){ lines.push('  ' + i.name + '  ' + eur(i.price)); });
+      s.items.forEach(function(i){ lines.push('  ' + i.name + '  ' + eur(i.price); });
     });
+    var pan = STAPLES.filter(function(st){ return state.pantry[st.key] === 'buy'; });
+    if (pan.length){
+      lines.push('');
+      lines.push('PANTRY');
+      pan.forEach(function(st){ lines.push('  ' + state.pantryItems[st.key].name + '  ' + eur(state.pantryItems[st.key].price)); });
+    }
+    var have = STAPLES.filter(function(st){ return state.pantry[st.key] === 'have'; });
+    if (have.length){
+      lines.push('');
+      lines.push('Already at home: ' + have.map(function(st){ return st.label; }).join(', '));
+    }
     lines.push('');
-    lines.push('Spent ' + eur(spent()) + ' of ' + eur(state.budget) + ' · ' + eur(remaining()) + ' left');
+    lines.push('Meals ' + eur(mealsCost()) + ' · Pantry ' + eur(pantryCost()) + ' · of ' + eur(state.budget) +
+      ' · ' + eur(remaining()) + ' left');
     var btn = this;
     function ok(){ btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = 'Copy list'; }, 1500); }
     if (navigator.clipboard) navigator.clipboard.writeText(lines.join('\n')).then(ok, ok); else ok();
@@ -585,7 +703,6 @@
   }
 
   renderTabs();
-  renderHead();
   loadStaples();
   renderAll();
   poll();

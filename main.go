@@ -172,19 +172,41 @@ type stapleDef struct {
 	Find      []string `json:"-"`
 	In        []string `json:"-"`
 	ImpliedBy []string `json:"impliedBy"`
+	Triggers  []string `json:"triggers"`
 }
 
+// Triggers are the words in a product name that mean "this dish needs it".
 var stapleDefs = []stapleDef{
-	{"sal", "Salt", []string{"sal"}, []string{"Sal e Temperos"}, []string{"Arroz, Massa e Farinha", "Legumes Frescos", "Ovos", "Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco", "Massas e Noodles"}},
-	{"azeite", "Olive oil", []string{"azeite"}, []string{"Azeite, Óleo e Vinagre"}, []string{"Arroz, Massa e Farinha", "Legumes Frescos", "Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco", "Massas e Noodles", "Batatas e Purés"}},
-	{"alho", "Garlic", []string{"alho"}, []string{"Sal e Temperos", "Legumes Frescos"}, []string{"Aves e Coelho", "Porco", "Bovino", "Legumes Frescos", "Arroz, Massa e Farinha"}},
-	{"cebola", "Onion", []string{"cebola"}, []string{"Legumes Frescos"}, []string{"Aves e Coelho", "Porco", "Bovino", "Legumes Frescos", "Arroz, Massa e Farinha"}},
-	{"pimenta", "Pepper", []string{"pimenta"}, []string{"Sal e Temperos"}, []string{"Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco"}},
-	{"farinha", "Flour", []string{"farinha"}, []string{"Arroz, Massa e Farinha"}, []string{"Batatas e Purés", "Sopas e Saladas"}},
-	{"acucar", "Sugar", []string{"acucar"}, []string{"Açúcar e Sobremesas", "Arroz, Massa e Farinha"}, []string{"Café", "Cereais e Barras"}},
-	{"vinagre", "Vinegar", []string{"vinagre"}, []string{"Azeite, Óleo e Vinagre"}, []string{"Legumes Frescos", "Salada, Preparados e Salteados"}},
-	{"louro", "Bay leaf", []string{"louro"}, []string{"Sal e Temperos"}, []string{"Sopas e Saladas", "Aves e Coelho"}},
-	{"oregaos", "Oregano", []string{"oregaos", "oregãos"}, []string{"Sal e Temperos"}, []string{"Pizzas", "Massas e Noodles"}},
+	{"sal", "Salt", []string{"sal"}, []string{"Sal e Temperos"},
+		[]string{"Arroz, Massa e Farinha", "Legumes Frescos", "Ovos", "Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco", "Massas e Noodles"},
+		[]string{"batata", "arroz", "massa", "esparguete", "penne", "frango", "carne", "bife", "porco", "peixe", "bacalhau", "atum", "ovo", "legumes", "feijao", "grao", "sopa", "caldo", "cenoura", "tomate", "salada", "pure", "risotto", "couve", "grelos"}},
+	{"azeite", "Olive oil", []string{"azeite"}, []string{"Azeite, Óleo e Vinagre"},
+		[]string{"Arroz, Massa e Farinha", "Legumes Frescos", "Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco", "Massas e Noodles", "Batatas e Purés"},
+		[]string{"batata", "arroz", "massa", "frango", "carne", "peixe", "bacalhau", "legumes", "salada", "tomate", "ovo", "sopa"}},
+	{"alho", "Garlic", []string{"alho"}, []string{"Sal e Temperos", "Legumes Frescos"},
+		[]string{"Aves e Coelho", "Porco", "Bovino", "Legumes Frescos", "Arroz, Massa e Farinha"},
+		[]string{"frango", "carne", "arroz", "massa", "batata", "legumes", "peixe", "bacalhau"}},
+	{"cebola", "Onion", []string{"cebola"}, []string{"Legumes Frescos"},
+		[]string{"Aves e Coelho", "Porco", "Bovino", "Legumes Frescos", "Arroz, Massa e Farinha"},
+		[]string{"frango", "carne", "arroz", "sopa", "feijao", "tomate", "batata", "bacalhau"}},
+	{"pimenta", "Pepper", []string{"pimenta"}, []string{"Sal e Temperos"},
+		[]string{"Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco"},
+		[]string{"frango", "carne", "peixe", "bacalhau", "ovo", "bife"}},
+	{"farinha", "Flour", []string{"farinha"}, []string{"Arroz, Massa e Farinha"},
+		[]string{"Batatas e Purés", "Sopas e Saladas"},
+		[]string{"pure", "sopa", "molho", "carne"}},
+	{"acucar", "Sugar", []string{"acucar"}, []string{"Açúcar e Sobremesas", "Arroz, Massa e Farinha"},
+		[]string{"Café", "Cereais e Barras"},
+		[]string{"cafe", "cereais", "muesli", "cha", "bolo"}},
+	{"vinagre", "Vinegar", []string{"vinagre"}, []string{"Azeite, Óleo e Vinagre"},
+		[]string{"Legumes Frescos", "Salada, Preparados e Salteados"},
+		[]string{"salada", "legumes", "alface"}},
+	{"louro", "Bay leaf", []string{"louro"}, []string{"Sal e Temperos"},
+		[]string{"Sopas e Saladas", "Aves e Coelho"},
+		[]string{"sopa", "feijao", "frango", "carne"}},
+	{"oregaos", "Oregano", []string{"oregaos", "oregãos"}, []string{"Sal e Temperos"},
+		[]string{"Pizzas", "Massas e Noodles"},
+		[]string{"pizza", "massa", "tomate"}},
 }
 
 func handleStaples(w http.ResponseWriter, r *http.Request) {
@@ -196,13 +218,14 @@ func handleStaples(w http.ResponseWriter, r *http.Request) {
 		Key       string   `json:"key"`
 		Label     string   `json:"label"`
 		ImpliedBy []string `json:"impliedBy"`
+		Triggers  []string `json:"triggers"`
 		Product   *offer   `json:"product"`
 	}
 	mu.RLock()
 	defer mu.RUnlock()
 	res := make([]out, 0, len(stapleDefs))
 	for _, d := range stapleDefs {
-		o := out{Key: d.Key, Label: d.Label, ImpliedBy: d.ImpliedBy}
+		o := out{Key: d.Key, Label: d.Label, ImpliedBy: d.ImpliedBy, Triggers: d.Triggers}
 		best := -1
 		for i, p := range products {
 			if len(d.In) > 0 {
