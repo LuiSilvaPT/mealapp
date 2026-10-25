@@ -15,8 +15,13 @@ go run . -port 9000
 go run . -refresh        # re-crawl Glovo on startup, then serve
 ```
 
-The catalogue lives in `glovo_catalog.json` (~6,400 products). On first run, if
-it is missing, the app crawls Glovo itself.
+Two catalogues ship with the app:
+
+- `glovo_catalog.json` — ~6,400 products from the Auchan Castelo Branco store on Glovo, served at `/`.
+- `auchan_catalog.json` — ~8,760 products from Auchan's own food aisle (`auchan.pt/pt/alimentacao/`), served at `/auchan-direct`.
+
+Both run the same interface; the URL path picks the data source. Refresh Auchan's with
+`./mealapp -crawl-auchan`.
 
 ## How it works
 
@@ -61,3 +66,4 @@ CI runs `go vet`, a build and a smoke test on every push
 - Fresh produce and meat are sold by weight, so the final bill can differ.
 - The app stores your slots in the browser's localStorage — nothing is sent
   anywhere except the price queries.
+

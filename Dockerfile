@@ -8,7 +8,8 @@ FROM alpine:3.20
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=build /mealapp /usr/local/bin/mealapp
-COPY glovo_catalog.json ./
+COPY glovo_catalog.json auchan_catalog.json ./
 ENV PORT=8080
 EXPOSE 8080
 CMD ["sh", "-c", "exec mealapp -port ${PORT} -host 0.0.0.0"]
+

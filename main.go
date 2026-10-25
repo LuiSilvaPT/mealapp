@@ -22,9 +22,11 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"html"
 	"image/jpeg"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -267,86 +269,44 @@ type stapleDef struct {
 
 // Triggers are the words in a product name that mean "this dish needs it".
 var stapleDefs = []stapleDef{
-	{"sal", "Salt", []string{"sal"}, []string{"Sal e Temperos"},
+	{"sal", "Salt", []string{"sal"}, []string{"Sal e Temperos", "Sal, Ervas e Temperos"},
 		[]string{"Arroz, Massa e Farinha", "Legumes Frescos", "Ovos", "Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco", "Massas e Noodles"},
 		[]string{"batata", "arroz", "massa", "esparguete", "penne", "frango", "carne", "bife", "porco", "peixe", "bacalhau", "atum", "ovo", "legumes", "feijao", "grao", "sopa", "caldo", "cenoura", "tomate", "salada", "pure", "risotto", "couve", "grelos"}},
 	{"azeite", "Olive oil", []string{"azeite"}, []string{"Azeite, Óleo e Vinagre"},
 		[]string{"Arroz, Massa e Farinha", "Legumes Frescos", "Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco", "Massas e Noodles", "Batatas e Purés"},
 		[]string{"batata", "arroz", "massa", "frango", "carne", "peixe", "bacalhau", "legumes", "salada", "tomate", "ovo", "sopa"}},
-	{"alho", "Garlic", []string{"alho"}, []string{"Sal e Temperos", "Legumes Frescos"},
+	{"alho", "Garlic", []string{"alho"}, []string{"Sal e Temperos", "Legumes Frescos", "Sal, Ervas e Temperos"},
 		[]string{"Aves e Coelho", "Porco", "Bovino", "Legumes Frescos", "Arroz, Massa e Farinha"},
 		[]string{"frango", "carne", "arroz", "massa", "batata", "legumes", "peixe", "bacalhau"}},
 	{"cebola", "Onion", []string{"cebola"}, []string{"Legumes Frescos"},
 		[]string{"Aves e Coelho", "Porco", "Bovino", "Legumes Frescos", "Arroz, Massa e Farinha"},
 		[]string{"frango", "carne", "arroz", "sopa", "feijao", "tomate", "batata", "bacalhau"}},
-	{"pimenta", "Pepper", []string{"pimenta"}, []string{"Sal e Temperos"},
+	{"pimenta", "Pepper", []string{"pimenta"}, []string{"Sal e Temperos", "Sal, Ervas e Temperos"},
 		[]string{"Aves e Coelho", "Porco", "Bovino", "Bacalhau", "Peixe Fresco"},
 		[]string{"frango", "carne", "peixe", "bacalhau", "ovo", "bife"}},
-	{"farinha", "Flour", []string{"farinha"}, []string{"Arroz, Massa e Farinha"},
+	{"farinha", "Flour", []string{"farinha"}, []string{"Arroz, Massa e Farinha", "Farinha"},
 		[]string{"Batatas e Purés", "Sopas e Saladas"},
 		[]string{"pure", "sopa", "molho", "carne"}},
-	{"acucar", "Sugar", []string{"acucar"}, []string{"Açúcar e Sobremesas", "Arroz, Massa e Farinha"},
+	{"acucar", "Sugar", []string{"acucar"}, []string{"Açúcar e Sobremesas", "Arroz, Massa e Farinha", "Açúcar e Adoçante"},
 		[]string{"Café", "Cereais e Barras"},
 		[]string{"cafe", "cereais", "muesli", "cha", "bolo"}},
 	{"vinagre", "Vinegar", []string{"vinagre"}, []string{"Azeite, Óleo e Vinagre"},
 		[]string{"Legumes Frescos", "Salada, Preparados e Salteados"},
 		[]string{"salada", "legumes", "alface"}},
-	{"louro", "Bay leaf", []string{"louro"}, []string{"Sal e Temperos"},
+	{"louro", "Bay leaf", []string{"louro"}, []string{"Sal e Temperos", "Sal, Ervas e Temperos"},
 		[]string{"Sopas e Saladas", "Aves e Coelho"},
 		[]string{"sopa", "feijao", "frango", "carne"}},
-	{"oregaos", "Oregano", []string{"oregaos", "oregãos"}, []string{"Sal e Temperos"},
+	{"oregaos", "Oregano", []string{"oregaos", "oregãos"}, []string{"Sal e Temperos", "Sal, Ervas e Temperos"},
 		[]string{"Pizzas", "Massas e Noodles"},
 		[]string{"pizza", "massa", "tomate"}},
 }
 
 func handleStaples(w http.ResponseWriter, r *http.Request) {
-	type offer struct {
-		Name     string  `json:"name"`
-		Price    float64 `json:"price"`
-		ImageURL string  `json:"imageUrl"`
-		Section  string  `json:"section"`
-	}
-	type out struct {
-		Key       string   `json:"key"`
-		Label     string   `json:"label"`
-		ImpliedBy []string `json:"impliedBy"`
-		Triggers  []string `json:"triggers"`
-		Product   *offer   `json:"product"`
-	}
 	mu.RLock()
-	defer mu.RUnlock()
-	res := make([]out, 0, len(stapleDefs))
-	for _, d := range stapleDefs {
-		o := out{Key: d.Key, Label: d.Label, ImpliedBy: d.ImpliedBy, Triggers: d.Triggers}
-		best := -1
-		for i, p := range products {
-			if len(d.In) > 0 {
-				ok := false
-				for _, sec := range d.In {
-					if p.Section == sec {
-						ok = true
-						break
-					}
-				}
-				if !ok {
-					continue
-				}
-			}
-			if !hasAnyWord(words(p.Name), d.Find) {
-				continue
-			}
-			if best < 0 || p.Price < products[best].Price {
-				best = i
-			}
-		}
-		if best >= 0 {
-			o.Product = &offer{products[best].Name, products[best].Price, products[best].ImageURL, products[best].Section}
-		}
-		res = append(res, o)
-	}
-	writeJSON(w, map[string]any{"staples": res})
+	list := products
+	mu.RUnlock()
+	writeJSON(w, map[string]any{"staples": stapleOffers(list)})
 }
-
 // ---- tile schema of the Glovo content API -------------------------------------
 
 type tile struct {
@@ -660,6 +620,272 @@ func writeJSON(w http.ResponseWriter, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
+// ---- Auchan direct: their own store, food only ------------------------------
+
+const (
+	auchanCatalog = "auchan_catalog.json"
+	auchanGrid    = "https://www.auchan.pt/on/demandware.store/Sites-AuchanPT-Site/pt_PT/Search-UpdateGrid"
+	auchanCGID    = "alimentacao-"
+	browserUA     = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+)
+
+var (
+	aMu       sync.RWMutex
+	aProducts []Product
+	aSearch   []string
+	aUpdated  time.Time
+)
+
+// Auchan names its grocery sections differently, so they get their own maps.
+var auchanSectionMeals = map[string][]string{
+	"Cereais e Barras":            {"breakfast", "snack"},
+	"Iogurtes":                    {"breakfast", "snack"},
+	"Leites":                      {"breakfast"},
+	"Bebidas Vegetais":            {"breakfast"},
+	"Bebidas de Café Refrigeradas": {"breakfast"},
+	"Café, Chá e Infusão":         {"breakfast"},
+	"Ice Tea e Tisanas":           {"breakfast"},
+	"Chocolates e Achocolatados":  {"breakfast", "snack"},
+	"Cremes, Compotas e Mel":      {"breakfast"},
+	"Manteiga, Cremes e Margarina": {"breakfast", "lunch", "dinner"},
+	"Tostas e Pão Embalado":       {"breakfast", "lunch", "dinner"},
+	"Bolachas e Bolos":            {"breakfast", "snack"},
+	"Ovos":                        {"breakfast", "lunch", "dinner"},
+	"Açúcar e Adoçante":           {"breakfast", "lunch", "dinner"},
+	"Arroz e Massa":               {"lunch", "dinner"},
+	"Farinha":                     {"lunch", "dinner"},
+	"Conservas":                   {"lunch", "dinner"},
+	"Azeite, Óleo e Vinagre":      {"lunch", "dinner"},
+	"Sal, Ervas e Temperos":       {"lunch", "dinner"},
+	"Polpas, Caldos e Temperos":   {"lunch", "dinner"},
+	"Maionese, Ketchup, Mostarda e Especialidades": {"lunch", "dinner"},
+	"Natas, Béchamel e Chantilly": {"lunch", "dinner"},
+	"Leite Condensado e Preparado para Bolos": {"lunch", "dinner"},
+	"Refeições, Sopas e Puré":     {"lunch", "dinner"},
+	"Proteína":                    {"lunch", "dinner"},
+	"Preparação de Refeições":     {"lunch", "dinner"},
+	"Batatas Fritas e Aperitivos Snacks": {"snack"},
+	"Pastilhas, Rebuçados e Chupas": {"snack"},
+	"Gelatinas e Sobremesas":      {"snack"},
+	"Sobremesas":                  {"snack"},
+}
+
+func auchanMeals(section string) []string {
+	if m, ok := auchanSectionMeals[section]; ok {
+		return m
+	}
+	switch {
+	case strings.HasPrefix(section, "Cozinha "), section == "Halal":
+		return []string{"lunch", "dinner"}
+	case strings.HasPrefix(section, "Queijo"), section == "Queijaria":
+		return []string{"breakfast", "lunch", "dinner"}
+	case strings.HasPrefix(section, "Biológicos"), section == "Sem Lactose":
+		return []string{"breakfast", "lunch", "dinner", "snack"}
+	}
+	return nil
+}
+
+var auchanSectionRole = map[string]string{
+	"Conservas": "protein", "Ovos": "protein", "Proteína": "protein",
+	"Arroz e Massa": "carb", "Farinha": "carb", "Tostas e Pão Embalado": "carb",
+	"Cereais e Barras": "carb",
+	"Leites": "dairy", "Iogurtes": "dairy", "Manteiga, Cremes e Margarina": "dairy",
+	"Natas, Béchamel e Chantilly": "dairy", "Bebidas Vegetais": "dairy",
+	"Leite Sem Lactose": "dairy", "Leite Condensado e Preparado para Bolos": "dairy",
+	"Biológicos Lácteos": "dairy",
+}
+
+func roleAuchan(section string) string {
+	if r, ok := auchanSectionRole[section]; ok {
+		return r
+	}
+	switch {
+	case strings.HasPrefix(section, "Queijo"), section == "Queijaria":
+		return "dairy"
+	case strings.HasPrefix(section, "Cozinha "), section == "Halal":
+		return "protein"
+	}
+	return "other"
+}
+
+func classifyAuchan(p Product) []string {
+	set := map[string]bool{}
+	for _, m := range auchanMeals(p.Section) {
+		set[m] = true
+	}
+	padded := words(p.Name)
+	for meal, kws := range mealKeywords {
+		if hasAnyWord(padded, kws) {
+			set[meal] = true
+		}
+	}
+	out := make([]string, 0, 4)
+	for _, m := range []string{"breakfast", "lunch", "dinner", "snack"} {
+		if set[m] {
+			out = append(out, m)
+		}
+	}
+	return out
+}
+
+func setAuchan(p []Product) {
+	folded := make([]string, len(p))
+	for i := range p {
+		p[i].Meals = classifyAuchan(p[i])
+		p[i].Role = roleAuchan(p[i].Section)
+		p[i].UnitPrice, p[i].UnitLabel = unitPrice(p[i])
+		folded[i] = fold(p[i].Name + " " + p[i].Section)
+	}
+	aMu.Lock()
+	aProducts, aSearch, aUpdated = p, folded, time.Now()
+	aMu.Unlock()
+}
+
+func fetchText(u string) (string, error) {
+	var last error
+	for attempt := 0; attempt < 4; attempt++ {
+		req, err := http.NewRequest("GET", u, nil)
+		if err != nil {
+			return "", err
+		}
+		req.Header.Set("User-Agent", browserUA)
+		req.Header.Set("Accept", "text/html,application/xhtml+xml,*/*")
+		req.Header.Set("Accept-Language", "pt-PT,pt;q=0.9,en;q=0.8")
+		resp, err := client.Do(req)
+		if err != nil {
+			last = err
+			time.Sleep(time.Duration(400*(1<<attempt)) * time.Millisecond)
+			continue
+		}
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
+		resp.Body.Close()
+		if resp.StatusCode == 200 {
+			return string(body), nil
+		}
+		if resp.StatusCode == 429 || resp.StatusCode >= 500 {
+			last = fmt.Errorf("status %d", resp.StatusCode)
+			time.Sleep(time.Duration(700*(1<<attempt)) * time.Millisecond)
+			continue
+		}
+		return "", fmt.Errorf("status %d", resp.StatusCode)
+	}
+	return "", last
+}
+
+type auchanGTM struct {
+	ItemID     string `json:"item_id"`
+	ItemName   string `json:"item_name"`
+	ItemBrand  string `json:"item_brand"`
+	Category2  string `json:"item_category2"`
+	Category3  string `json:"item_category3"`
+	Category4  string `json:"item_category4"`
+	Price      string `json:"price"`
+	Discount   string `json:"discount"`
+	Quantity   string `json:"quantity"`
+	ItemVariant string `json:"item_variant"`
+}
+
+var (
+	gtmNewRe = regexp.MustCompile(`data-gtm-new="([^"]+)"`)
+	gtmRe    = regexp.MustCompile(`data-gtm="([^"]+)"`)
+	imgRe    = regexp.MustCompile(`data-srcset="(https://www\.auchan\.pt/dw/image/[^"]+?)"`)
+	swRe     = regexp.MustCompile(`[?&]sw=\d+`)
+	shRe     = regexp.MustCompile(`[?&]sh=\d+`)
+)
+
+// parseAuchanTiles reads one grid page: each tile carries its own JSON blob and
+// the first responsive image source that follows it.
+func parseAuchanTiles(page string) []Product {
+	// Collect the two streams separately and pair them by index. Splitting the
+	// page on the tile class does not work: the image container's class is
+	// auc-product-tile__image-container__image, so the split cuts each tile in half.
+	gtms := gtmNewRe.FindAllStringSubmatch(page, -1)
+	if len(gtms) == 0 {
+		gtms = gtmRe.FindAllStringSubmatch(page, -1)
+	}
+	imgs := imgRe.FindAllStringSubmatch(page, -1)
+	out := make([]Product, 0, len(gtms))
+	for i, m := range gtms {
+		var g auchanGTM
+		if err := json.Unmarshal([]byte(html.UnescapeString(m[1])), &g); err != nil {
+			continue
+		}
+		if g.ItemName == "" || g.ItemID == "" {
+			continue
+		}
+		price, err := strconv.ParseFloat(strings.Replace(strings.TrimSpace(g.Price), ",", ".", 1), 64)
+		// ParseFloat("NaN") returns NaN with no error, and Go cannot marshal NaN,
+		// which silently produced an empty catalogue once. Reject unpriced items.
+		if err != nil || math.IsNaN(price) || math.IsInf(price, 0) || price <= 0 {
+			continue
+		}
+		img := ""
+		if i < len(imgs) {
+			img = html.UnescapeString(imgs[i][1])
+			img = swRe.ReplaceAllString(img, "?sw=360")
+			img = shRe.ReplaceAllString(img, "&sh=270")
+		}
+		section := g.Category3
+		if section == "" {
+			section = g.Category2
+		}
+		if section == "" {
+			section = "Alimentação"
+		}
+		out = append(out, Product{
+			Name:     g.ItemName,
+			Price:    price,
+			Section:  section,
+			ExtID:    g.ItemID,
+			ImageURL: img,
+			Unit:     "piece_piece",
+		})
+	}
+	return out
+}
+func crawlAuchan() ([]Product, error) {
+	var out []Product
+	seen := map[string]bool{}
+	pages := 0
+	for start := 0; start < 40000; start += 24 {
+		u := fmt.Sprintf("%s?cgid=%s&start=%d&sz=24&format=ajax", auchanGrid, auchanCGID, start)
+		page, err := fetchText(u)
+		if err != nil || len(page) < 1000 {
+			break
+		}
+		tiles := parseAuchanTiles(page)
+		if len(tiles) == 0 {
+			break
+		}
+		for _, p := range tiles {
+			if !seen[p.ExtID] {
+				seen[p.ExtID] = true
+				out = append(out, p)
+			}
+		}
+		pages++
+		time.Sleep(140 * time.Millisecond)
+	}
+	if len(out) == 0 {
+		return nil, fmt.Errorf("auchan crawl returned nothing")
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Price < out[j].Price })
+	return out, nil
+}
+
+func loadAuchan() error {
+	b, err := os.ReadFile(auchanCatalog)
+	if err != nil {
+		return err
+	}
+	var p []Product
+	if err := json.Unmarshal(b, &p); err != nil {
+		return err
+	}
+	setAuchan(p)
+	return nil
+}
+
 // ---- image proxy: fetch once, downscale, cache, serve small ----------------
 
 const imgCacheDir = "imgcache"
@@ -811,24 +1037,13 @@ func withGzip(next http.Handler) http.Handler {
 
 // ---- handlers -----------------------------------------------------------------
 
-func handleProducts(w http.ResponseWriter, r *http.Request) {
-	q := fold(strings.TrimSpace(r.URL.Query().Get("q")))
-	section := r.URL.Query().Get("section")
-	meal := r.URL.Query().Get("meal")
-	roleWant := r.URL.Query().Get("role")
-	sortBy := r.URL.Query().Get("sort")
-	maxPrice, _ := strconv.ParseFloat(r.URL.Query().Get("max"), 64)
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
-	if limit <= 0 || limit > 200 {
-		limit = 48
-	}
-	terms := strings.Fields(q)
+func queryProducts(list []Product, folded []string, q, section, meal, roleWant, sortBy string,
+	maxPrice float64, limit, offset int) ([]Product, int) {
 
-	mu.RLock()
+	terms := strings.Fields(q)
 	out := make([]Product, 0, limit)
 	matched, skipped := 0, 0
-	for i, p := range products {
+	for i, p := range list {
 		if section != "" && p.Section != section {
 			continue
 		}
@@ -851,7 +1066,7 @@ func handleProducts(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		if len(terms) > 0 {
-			hay := search[i]
+			hay := folded[i]
 			ok := true
 			for _, t := range terms {
 				if !strings.Contains(hay, t) {
@@ -873,9 +1088,6 @@ func handleProducts(w http.ResponseWriter, r *http.Request) {
 		}
 		out = append(out, p)
 	}
-	total := len(products)
-	mu.RUnlock()
-
 	if sortBy == "unit" {
 		sort.SliceStable(out, func(i, j int) bool {
 			a, b := out[i].UnitPrice, out[j].UnitPrice
@@ -888,11 +1100,146 @@ func handleProducts(w http.ResponseWriter, r *http.Request) {
 			return a < b
 		})
 	}
+	return out, matched
+}
 
+func writeProductResponse(w http.ResponseWriter, r *http.Request, list []Product, folded []string) {
+	q := fold(strings.TrimSpace(r.URL.Query().Get("q")))
+	section := r.URL.Query().Get("section")
+	meal := r.URL.Query().Get("meal")
+	roleWant := r.URL.Query().Get("role")
+	sortBy := r.URL.Query().Get("sort")
+	maxPrice, _ := strconv.ParseFloat(r.URL.Query().Get("max"), 64)
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	if limit <= 0 || limit > 200 {
+		limit = 48
+	}
+	out, matched := queryProducts(list, folded, q, section, meal, roleWant, sortBy, maxPrice, limit, offset)
 	writeJSON(w, map[string]any{
-		"total": total, "matched": matched, "offset": offset,
+		"total": len(list), "matched": matched, "offset": offset,
 		"count": len(out), "products": out,
 	})
+}
+
+func handleProducts(w http.ResponseWriter, r *http.Request) {
+	mu.RLock()
+	defer mu.RUnlock()
+	writeProductResponse(w, r, products, search)
+}
+
+func handleAuchanProducts(w http.ResponseWriter, r *http.Request) {
+	aMu.RLock()
+	defer aMu.RUnlock()
+	writeProductResponse(w, r, aProducts, aSearch)
+}
+
+func roleCounts(list []Product) map[string]int {
+	m := map[string]int{}
+	for _, p := range list {
+		m[p.Role]++
+	}
+	return m
+}
+
+func handleAuchanSections(w http.ResponseWriter, r *http.Request) {
+	aMu.RLock()
+	counts := map[string]int{}
+	for _, p := range aProducts {
+		counts[p.Section]++
+	}
+	aMu.RUnlock()
+	type sec struct {
+		Name  string `json:"name"`
+		Count int    `json:"count"`
+	}
+	out := make([]sec, 0, len(counts))
+	for n, c := range counts {
+		out = append(out, sec{n, c})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	writeJSON(w, map[string]any{"sections": out})
+}
+
+func handleAuchanStats(w http.ResponseWriter, r *http.Request) {
+	aMu.RLock()
+	n, at, list := len(aProducts), aUpdated, aProducts
+	aMu.RUnlock()
+	writeJSON(w, map[string]any{
+		"products": n, "updated": at, "roles": roleCounts(list),
+		"source": "auchan", "refresh": map[string]any{"running": false},
+	})
+}
+
+// stapleOffers finds, for each pantry staple, the cheapest product in a list.
+func stapleOffers(list []Product) []map[string]any {
+	res := make([]map[string]any, 0, len(stapleDefs))
+	for _, d := range stapleDefs {
+		var best *Product
+		for i := range list {
+			p := &list[i]
+			if len(d.In) > 0 {
+				ok := false
+				for _, sec := range d.In {
+					if p.Section == sec {
+						ok = true
+						break
+					}
+				}
+				if !ok {
+					continue
+				}
+			}
+			if !hasAnyWord(words(p.Name), d.Find) {
+				continue
+			}
+			if best == nil || p.Price < best.Price {
+				best = p
+			}
+		}
+		var prod map[string]any
+		if best != nil {
+			prod = map[string]any{"name": best.Name, "price": best.Price, "imageUrl": best.ImageURL, "section": best.Section}
+		}
+		res = append(res, map[string]any{
+			"key": d.Key, "label": d.Label, "impliedBy": d.ImpliedBy,
+			"triggers": d.Triggers, "product": prod,
+		})
+	}
+	return res
+}
+
+func handleAuchanStaples(w http.ResponseWriter, r *http.Request) {
+	aMu.RLock()
+	list := aProducts
+	aMu.RUnlock()
+	writeJSON(w, map[string]any{"staples": stapleOffers(list)})
+}
+
+func handleAuchanRefresh(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "POST only", http.StatusMethodNotAllowed)
+		return
+	}
+	go func() {
+		p, err := crawlAuchan()
+		if err != nil {
+			log.Printf("auchan refresh failed: %v", err)
+			return
+		}
+		b, err := json.Marshal(p)
+		if err != nil {
+			log.Printf("auchan marshal failed: %v", err)
+			return
+		}
+		if err := os.WriteFile(auchanCatalog, b, 0o644); err != nil {
+			log.Printf("auchan write failed: %v", err)
+			return
+		}
+		setAuchan(p)
+		log.Printf("auchan refreshed: %d products", len(p))
+	}()
+	writeJSON(w, map[string]any{"started": true})
 }
 
 func handleSections(w http.ResponseWriter, r *http.Request) {
@@ -921,7 +1268,7 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 	crawlMu.Lock()
 	c := crawl
 	crawlMu.Unlock()
-	writeJSON(w, map[string]any{"products": n, "updated": at, "refresh": c})
+	writeJSON(w, map[string]any{"products": n, "updated": at, "refresh": c, "roles": roleCounts(products), "source": "glovo"})
 }
 
 func handleRefresh(w http.ResponseWriter, r *http.Request) {
@@ -937,7 +1284,26 @@ func main() {
 	port := flag.Int("port", 8080, "port to listen on")
 	host := flag.String("host", "0.0.0.0", "address to bind")
 	doRefresh := flag.Bool("refresh", false, "crawl Glovo on startup")
+	crawlA := flag.Bool("crawl-auchan", false, "crawl Auchan's food catalogue, save it, and exit")
 	flag.Parse()
+
+	if *crawlA {
+		log.Print("crawling Auchan alimentacao...")
+		p, err := crawlAuchan()
+		if err != nil {
+			log.Fatalf("auchan crawl failed: %v", err)
+		}
+		b, _ := json.Marshal(p)
+		if err := os.WriteFile(auchanCatalog, b, 0o644); err != nil {
+			log.Fatalf("write failed: %v", err)
+		}
+		secs := map[string]int{}
+		for _, x := range p {
+			secs[x.Section]++
+		}
+		log.Printf("wrote %d products to %s across %d sections", len(p), auchanCatalog, len(secs))
+		return
+	}
 
 	if err := loadCatalog(); err != nil {
 		log.Printf("no local catalogue yet (%v) — starting a crawl", err)
@@ -951,22 +1317,29 @@ func main() {
 	mu.RLock()
 	n := len(products)
 	mu.RUnlock()
-	log.Printf("loaded %d products", n)
+	log.Printf("loaded %d Glovo products", n)
+	if err := loadAuchan(); err != nil {
+		log.Printf("no Auchan catalogue yet (%v)", err)
+	} else {
+		aMu.RLock()
+		log.Printf("loaded %d Auchan products", len(aProducts))
+		aMu.RUnlock()
+	}
 
 	if *doRefresh {
 		go refresh()
 	}
 
-	http.Handle("/", withGzip(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			http.NotFound(w, r)
-			return
-		}
+	// both catalogues serve the same app; the path picks the data source
+	appPage := withGzip(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		b, _ := pageFS.ReadFile("index.html")
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-cache")
 		_, _ = w.Write(b)
-	})))
+	}))
+	http.Handle("/", appPage)
+	http.Handle("/auchan-direct", appPage)
+	http.Handle("/auchan-direct/", appPage)
 	http.HandleFunc("/hero.jpg", func(w http.ResponseWriter, r *http.Request) {
 		b, err := pageFS.ReadFile("hero.jpg")
 		if err != nil {
@@ -983,6 +1356,11 @@ func main() {
 	http.Handle("/api/staples", withGzip(http.HandlerFunc(handleStaples)))
 	http.Handle("/api/stats", withGzip(http.HandlerFunc(handleStats)))
 	http.HandleFunc("/api/refresh", handleRefresh)
+	http.Handle("/api/auchan/products", withGzip(http.HandlerFunc(handleAuchanProducts)))
+	http.Handle("/api/auchan/sections", withGzip(http.HandlerFunc(handleAuchanSections)))
+	http.Handle("/api/auchan/staples", withGzip(http.HandlerFunc(handleAuchanStaples)))
+	http.Handle("/api/auchan/stats", withGzip(http.HandlerFunc(handleAuchanStats)))
+	http.HandleFunc("/api/auchan/refresh", handleAuchanRefresh)
 
 	addr := *host + ":" + strconv.Itoa(*port)
 	log.Printf("meal builder on http://localhost:%d  (%s)", *port, addr)
@@ -991,3 +1369,8 @@ func main() {
 
 // keep net/url imported for future query building without churn
 var _ = url.Values{}
+
+
+
+
+
