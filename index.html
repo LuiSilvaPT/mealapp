@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meal builder — Auchan, Castelo Branco</title>
+<meta name="color-scheme" content="light dark">
+<style>
+  :root{
+    --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+    --r-sm:8px; --r-md:14px; --r-pill:999px;
+    --bg:#FFFFFF; --surface:#FAF8F5; --surface-2:#F2EFEA; --border:#E8E4DD;
+    --text:#1C1A17; --text-2:#57534B; --text-3:#8B857C;
+    --accent:#B4551F; --accent-600:#8F4318; --accent-050:#FDF3EC;
+    --ok:#1F6F4A; --ok-bg:#EAF4EE; --warn:#A33A2A;
+    --shadow-1:0 1px 2px rgba(60,42,24,.06), 0 1px 1px rgba(60,42,24,.04);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14120F; --surface:#1C1916; --surface-2:#262220; --border:#332E29;
+      --text:#F5F1EA; --text-2:#C4BCB1; --text-3:#9A9187;
+      --accent:#E08A54; --accent-600:#F0A070; --accent-050:#2A2019;
+      --ok:#5FBF8B; --ok-bg:#1B2A22; --warn:#F08A72;
+      --shadow-1:0 1px 2px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  a{color:var(--accent-600)}
+  :focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:var(--r-sm)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  header{position:sticky;top:0;z-index:20;background:var(--bg);box-shadow:var(--shadow-1)}
+  header .bar{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap;padding:var(--s3) 0}
+  h1{font-size:1.05rem;margin:0;font-weight:700;letter-spacing:-.01em}
+  .meta{color:var(--text-3);font-size:.8rem}
+  .budget{display:flex;align-items:center;gap:var(--s2);margin-left:auto}
+  .budget label{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:600}
+  .budget input{width:90px;font:inherit;font-size:.95rem;padding:6px 10px;border:1px solid var(--border);
+    border-radius:var(--r-sm);background:var(--surface);color:var(--text)}
+  .remaining{font-variant-numeric:tabular-nums;font-weight:700;font-size:1.15rem}
+  .remaining.over{color:var(--warn)}
+  .remaining.ok{color:var(--ok)}
+  button{font:inherit;font-size:.85rem;font-weight:600;padding:8px 14px;border-radius:var(--r-sm);cursor:pointer;
+    border:1px solid var(--border);background:var(--surface);color:var(--text)}
+  button:hover{background:var(--surface-2)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.primary:hover{background:var(--accent-600);border-color:var(--accent-600)}
+  @media (prefers-color-scheme: dark){ button.primary{color:#1A1512} }
+
+  main{padding:var(--s5) 0 var(--s6)}
+  .slots{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s4)}
+  .slot{background:var(--surface);border-radius:var(--r-md);padding:var(--s4);display:flex;flex-direction:column;gap:var(--s3)}
+  .slothead{display:flex;align-items:center;gap:var(--s2)}
+  .slothead input.name{flex:1;font:inherit;font-weight:700;font-size:1rem;border:none;background:transparent;color:var(--text);padding:2px 0}
+  .slothead input.name:focus{outline:none;border-bottom:2px solid var(--accent)}
+  .slothead .cap{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  .slothead .cap input{width:70px;font:inherit;font-size:.9rem;padding:5px 8px;border:1px solid var(--border);
+    border-radius:var(--r-sm);background:var(--bg);color:var(--text)}
+  .x{border:none;background:transparent;color:var(--text-3);font-size:1.1rem;line-height:1;padding:4px 6px;cursor:pointer}
+  .x:hover{color:var(--warn)}
+  .search{display:flex;gap:var(--s2)}
+  .search input{flex:1;font:inherit;font-size:.95rem;padding:9px 12px;border:1px solid var(--border);
+    border-radius:var(--r-sm);background:var(--bg);color:var(--text)}
+  .results{max-height:230px;overflow:auto;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg)}
+  .results:empty{display:none}
+  .hit{display:flex;align-items:center;gap:var(--s3);width:100%;text-align:left;padding:8px 10px;
+    border:none;border-bottom:1px solid var(--border);background:transparent;border-radius:0;font-weight:500;font-size:.9rem}
+  .hit:last-child{border-bottom:none}
+  .hit:hover{background:var(--accent-050)}
+  .hit .p{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent-600);flex:none;min-width:56px}
+  .hit .n{flex:1;min-width:0}
+  .hit .s{color:var(--text-3);font-size:.75rem;display:block}
+  .picked{display:flex;flex-direction:column;gap:2px}
+  .picked .row{display:flex;align-items:center;gap:var(--s2);font-size:.9rem;padding:5px 0;border-bottom:1px dotted var(--border)}
+  .picked .row .p{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600}
+  .empty{color:var(--text-3);font-size:.85rem;padding:6px 0}
+  .slottotal{display:flex;justify-content:space-between;font-size:.85rem;color:var(--text-2);
+    border-top:1px solid var(--border);padding-top:var(--s2);margin-top:auto}
+  .slottotal b{font-variant-numeric:tabular-nums;color:var(--text)}
+  .bar{display:flex;align-items:center;gap:var(--s3);margin-top:var(--s4)}
+  .status{font-size:.8rem;color:var(--text-3)}
+  footer{margin-top:var(--s6);padding-top:var(--s4);border-top:1px solid var(--border);color:var(--text-3);font-size:.8rem}
+  @media (max-width:860px){ .slots{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <div>
+      <h1>Meal builder</h1>
+      <div class="meta" id="meta">Auchan, Castelo Branco · loading…</div>
+    </div>
+    <div class="budget">
+      <label for="budget">Budget €</label>
+      <input id="budget" type="number" min="0" step="0.5" value="39">
+      <span class="remaining ok" id="remaining">€39.00 left</span>
+      <button id="refresh" title="Re-fetch live prices from Glovo">Refresh prices</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="slots" id="slots"></div>
+  <div class="bar">
+    <button id="addslot">+ Add slot</button>
+    <button id="clear">Clear all</button>
+    <span class="status" id="status"></span>
+  </div>
+  <footer>
+    Every line comes from the live Auchan (Castelo Branco) Glovo catalogue. Only products that fit the money you have
+    left are shown. Your slots are saved in this browser.
+  </footer>
+</main>
+
+<script>
+(function(){
+  var API = '/api/products';
+  var STORE = 'mealapp-v1';
+
+  var state = load() || {
+    budget: 39,
+    slots: [
+      { id: id(), name: 'Breakfast', cap: 3,  items: [] },
+      { id: id(), name: 'Lunch',     cap: 5,  items: [] },
+      { id: id(), name: 'Dinner',    cap: 5,  items: [] },
+      { id: id(), name: 'Snack',     cap: 2,  items: [] }
+    ]
+  };
+
+  function id(){ return Math.random().toString(36).slice(2,9); }
+  function eur(n){ return '€' + n.toFixed(2); }
+  function load(){ try { return JSON.parse(localStorage.getItem(STORE)); } catch(e){ return null; } }
+  function save(){ try { localStorage.setItem(STORE, JSON.stringify(state)); } catch(e){} }
+
+  function spent(){ return state.slots.reduce(function(a,s){ return a + total(s); }, 0); }
+  function total(s){ return s.items.reduce(function(a,i){ return a + i.price; }, 0); }
+  function remaining(){ return state.budget - spent(); }
+  function slotRoom(s){
+    var cap = parseFloat(s.cap);
+    if (isNaN(cap) || cap <= 0) return Infinity;
+    return cap - total(s);
+  }
+  // the money a search may spend: never more than what is left overall
+  function roomFor(s){
+    return Math.min(remaining(), slotRoom(s));
+  }
+
+  var slotsEl = document.getElementById('slots');
+  var remEl = document.getElementById('remaining');
+  var metaEl = document.getElementById('meta');
+  var statusEl = document.getElementById('status');
+
+  function renderHeader(){
+    var r = remaining();
+    remEl.textContent = eur(r) + (r < 0 ? ' over' : ' left');
+    remEl.className = 'remaining ' + (r < 0 ? 'over' : 'ok');
+  }
+
+  function render(){
+    slotsEl.innerHTML = '';
+    state.slots.forEach(function(s){
+      var el = document.createElement('section');
+      el.className = 'slot';
+
+      var head = document.createElement('div');
+      head.className = 'slothead';
+
+      var nm = document.createElement('input');
+      nm.className = 'name';
+      nm.value = s.name;
+      nm.setAttribute('aria-label','Slot name');
+      nm.addEventListener('input', function(){ s.name = nm.value; save(); });
+
+      var capWrap = document.createElement('span');
+      capWrap.className = 'cap';
+      capWrap.textContent = 'cap €';
+      var cap = document.createElement('input');
+      cap.type = 'number'; cap.min = '0'; cap.step = '0.5';
+      cap.value = s.cap || '';
+      cap.setAttribute('aria-label','Budget for this slot');
+      cap.addEventListener('input', function(){
+        s.cap = cap.value === '' ? null : parseFloat(cap.value);
+        save(); renderHeader(); refreshResults(s);
+      });
+      capWrap.appendChild(cap);
+
+      var x = document.createElement('button');
+      x.className = 'x'; x.type = 'button'; x.textContent = '×';
+      x.title = 'Remove slot';
+      x.addEventListener('click', function(){
+        state.slots = state.slots.filter(function(o){ return o.id !== s.id; });
+        save(); render();
+      });
+
+      head.append(nm, capWrap, x);
+
+      var search = document.createElement('div');
+      search.className = 'search';
+      var q = document.createElement('input');
+      q.type = 'search';
+      q.placeholder = 'Search products that fit ' + eur(Math.max(0, roomFor(s))) + '…';
+      q.addEventListener('input', debounce(function(){ runSearch(s, q, res); }, 140));
+      search.appendChild(q);
+
+      var res = document.createElement('div');
+      res.className = 'results';
+
+      var picked = document.createElement('div');
+      picked.className = 'picked';
+      if (!s.items.length) {
+        var e = document.createElement('div');
+        e.className = 'empty';
+        e.textContent = 'Nothing picked yet.';
+        picked.appendChild(e);
+      } else {
+        s.items.forEach(function(it, idx){
+          var row = document.createElement('div');
+          row.className = 'row';
+          var t = document.createElement('span');
+          t.textContent = it.name;
+          var p = document.createElement('span');
+          p.className = 'p'; p.textContent = eur(it.price);
+          var rm = document.createElement('button');
+          rm.className = 'x'; rm.type = 'button'; rm.textContent = '×'; rm.title = 'Remove';
+          rm.addEventListener('click', function(){
+            s.items.splice(idx,1); save(); render(); renderHeader();
+          });
+          row.append(t, p, rm);
+          picked.appendChild(row);
+        });
+      }
+
+      var foot = document.createElement('div');
+      foot.className = 'slottotal';
+      var left = slotRoom(s);
+      foot.innerHTML = '<span>Slot total</span><b>' + eur(total(s)) +
+        (isFinite(left) ? ' · ' + eur(Math.max(0,left)) + ' of cap left' : '') + '</b>';
+
+      el.append(head, search, res, picked, foot);
+      slotsEl.appendChild(el);
+      s._q = q; s._res = res;
+    });
+    renderHeader();
+  }
+
+  function refreshResults(s){
+    if (s._q && s._q.value.trim()) runSearch(s, s._q, s._res);
+  }
+
+  function runSearch(s, q, res){
+    var term = q.value.trim();
+    var room = roomFor(s);
+    if (room < 0) room = 0;
+    q.placeholder = 'Search products that fit ' + eur(room) + '…';
+    if (!term){ res.innerHTML = ''; return; }
+    var url = API + '?q=' + encodeURIComponent(term) + '&max=' + room.toFixed(2) + '&limit=40';
+    statusEl.textContent = 'searching…';
+    fetch(url).then(function(r){ return r.json(); }).then(function(d){
+      statusEl.textContent = '';
+      res.innerHTML = '';
+      if (!d.products || !d.products.length){
+        var e = document.createElement('div');
+        e.className = 'empty';
+        e.textContent = 'Nothing matches within ' + eur(room) + '.';
+        res.appendChild(e);
+        return;
+      }
+      d.products.forEach(function(p){
+        var b = document.createElement('button');
+        b.className = 'hit'; b.type = 'button';
+        var pr = document.createElement('span');
+        pr.className = 'p'; pr.textContent = eur(p.price);
+        var n = document.createElement('span');
+        n.className = 'n';
+        n.textContent = p.name;
+        var sec = document.createElement('span');
+        sec.className = 's'; sec.textContent = p.section + (p.unit === 'PIECE_PIECE' ? '' : ' · ' + p.unit);
+        n.appendChild(sec);
+        b.append(pr, n);
+        b.addEventListener('click', function(){
+          s.items.push({ name: p.name, price: p.price });
+          save(); render(); renderHeader();
+          var after = roomFor(s);
+          if (after < 0) after = 0;
+          s._q.placeholder = 'Search products that fit ' + eur(after) + '…';
+        });
+        res.appendChild(b);
+      });
+    }).catch(function(){ statusEl.textContent = 'search failed'; });
+  }
+
+  function debounce(fn, ms){
+    var t; return function(){ clearTimeout(t); t = setTimeout(fn, ms); };
+  }
+
+  // ---- header controls
+  var budgetEl = document.getElementById('budget');
+  budgetEl.value = state.budget;
+  budgetEl.addEventListener('input', function(){
+    state.budget = parseFloat(budgetEl.value) || 0;
+    save(); renderHeader();
+    state.slots.forEach(refreshResults);
+  });
+
+  document.getElementById('addslot').addEventListener('click', function(){
+    state.slots.push({ id: id(), name: 'New slot', cap: null, items: [] });
+    save(); render();
+  });
+
+  document.getElementById('clear').addEventListener('click', function(){
+    state.slots.forEach(function(s){ s.items = []; });
+    save(); render(); renderHeader();
+  });
+
+  var refreshBtn = document.getElementById('refresh');
+  refreshBtn.addEventListener('click', function(){
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = 'Refreshing…';
+    fetch('/api/refresh', { method: 'POST' }).catch(function(){});
+    poll();
+  });
+
+  function poll(){
+    fetch('/api/stats').then(function(r){ return r.json(); }).then(function(d){
+      if (d.refresh && d.refresh.running){
+        metaEl.textContent = 'crawling Glovo… ' + (d.refresh.count || 0) + ' products so far';
+        setTimeout(poll, 1500);
+      } else {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = 'Refresh prices';
+        if (d.refresh && d.refresh.error){
+          metaEl.textContent = 'refresh failed: ' + d.refresh.error;
+        } else {
+          metaEl.textContent = 'Auchan, Castelo Branco · ' + d.products + ' products · updated ' +
+            new Date(d.updated).toLocaleTimeString();
+        }
+        state.slots.forEach(refreshResults);
+      }
+    }).catch(function(){
+      refreshBtn.disabled = false;
+      refreshBtn.textContent = 'Refresh prices';
+    });
+  }
+
+  render();
+  poll();
+})();
+</script>
+</body>
+</html>

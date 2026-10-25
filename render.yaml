@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: mealapp
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/stats
+    envVars:
+      - key: PORT
+        value: 8080
