@@ -112,6 +112,26 @@ var (
 	}
 )
 
+// parseSize reads a size out of a product name the way Portuguese writes them:
+// "1.200 GR" is 1200 g, and "0.375G" is 375 g, not 0.375 g. Reading those
+// literally produced unit prices off by a factor of a thousand.
+func parseSize(raw, unit string) float64 {
+	raw = strings.TrimSpace(raw)
+	if strings.Contains(raw, ".") && !strings.Contains(raw, ",") {
+		if parts := strings.Split(raw, "."); len(parts) == 2 && len(parts[1]) == 3 {
+			raw = parts[0] + parts[1]
+		}
+	}
+	v := numToF64(raw)
+	switch strings.ToLower(unit) {
+	case "g", "gr", "grama", "gramas":
+		if v > 0 && v < 1 {
+			v *= 1000
+		}
+	}
+	return v
+}
+
 // unitPrice returns the price per kg (for solids) or per litre (for liquids).
 func unitPrice(p Product) (float64, string) {
 	if p.Weighted {
@@ -119,10 +139,10 @@ func unitPrice(p Product) (float64, string) {
 	}
 	amount, label := 0.0, ""
 	if m := multRe.FindStringSubmatch(p.Name); m != nil {
-		amount = numToF64(m[1]) * numToF64(m[2])
+		amount = parseSize(m[1], m[3]) * numToF64(m[2])
 		label = strings.ToLower(m[3])
 	} else if m := sizeRe.FindStringSubmatch(p.Name); m != nil {
-		amount = numToF64(m[1])
+		amount = parseSize(m[1], m[2])
 		label = strings.ToLower(m[2])
 	}
 	if amount <= 0 {
@@ -856,6 +876,10 @@ type auchanGTM struct {
 var (
 	gtmNewRe = regexp.MustCompile(`data-gtm-new="([^"]+)"`)
 	weightRe = regexp.MustCompile(`(?i)\bkg\b`)
+	// Auchan publishes its own unit price per tile; prefer it over parsing names,
+	// which misreads "1.200 GR" as 1.2 g and "LATA T30 KG" as 30 kg.
+	measuresRe  = regexp.MustCompile(`(?s)<div class="auc-measures">(.*?)</div>\s*</div>`)
+	unitPriceRe = regexp.MustCompile(`([0-9]+(?:[.,][0-9]+)?)\s*(?:&euro;|€)\s*/\s*([A-Za-z]+)`)
 	gtmRe    = regexp.MustCompile(`data-gtm="([^"]+)"`)
 	imgRe    = regexp.MustCompile(`data-srcset="(https://www\.auchan\.pt/dw/image/[^"]+?)"`)
 	swRe     = regexp.MustCompile(`[?&]sw=\d+`)
@@ -871,6 +895,7 @@ func parseAuchanTiles(page string) []Product {
 	gtms := gtmNewRe.FindAllStringSubmatch(page, -1)
 	olds := gtmRe.FindAllStringSubmatch(page, -1)
 	imgs := imgRe.FindAllStringSubmatch(page, -1)
+	meas := measuresRe.FindAllStringSubmatch(page, -1)
 	out := make([]Product, 0, len(gtms))
 	for i, m := range gtms {
 		var g auchanGTM
@@ -907,6 +932,18 @@ func parseAuchanTiles(page string) []Product {
 		if weighed {
 			unit = "kg"
 		}
+		// take the tile's own unit price when it gives one per kg or per litre
+		up, ul := 0.0, ""
+		if !weighed && i < len(meas) {
+			if m := unitPriceRe.FindStringSubmatch(meas[i][1]); m != nil {
+				switch strings.ToLower(m[2]) {
+				case "kg":
+					up, ul = numOrZero(m[1]), "kg"
+				case "l", "lt", "litro", "litros":
+					up, ul = numOrZero(m[1]), "L"
+				}
+			}
+		}
 		img := ""
 		if i < len(imgs) {
 			img = html.UnescapeString(imgs[i][1])
@@ -926,8 +963,10 @@ func parseAuchanTiles(page string) []Product {
 			Section:  section,
 			ExtID:    g.ItemID,
 			ImageURL: img,
-			Unit:     unit,
-			Weighted: weighed,
+			Unit:      unit,
+			Weighted:  weighed,
+			UnitPrice: up,
+			UnitLabel: ul,
 		})
 	}
 	return out
@@ -1464,6 +1503,8 @@ func main() {
 
 // keep net/url imported for future query building without churn
 var _ = url.Values{}
+
+
 
 
 
