@@ -104,7 +104,7 @@ func role(p Product) string {
 // ---- normalised price: what does it cost per kg or per litre? ------------------
 
 var (
-	sizeRe   = regexp.MustCompile(`(?i)(\d+(?:[.,]\d+)?)\s*(kg|quilograma|g|gr|gramas|grama|ml|cl|lt|l|litro|litros)\b`)
+	sizeRe   = regexp.MustCompile(`(?i)(\d+(?:[.,]\d+)?)\s*\)?\s*(kg|quilograma|g|gr|gramas|grama|ml|cl|lt|l|litro|litros)\b`)
 	multRe   = regexp.MustCompile(`(?i)(\d+)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*(ml|cl|lt|l|g|kg)`)
 	numToF64 = func(s string) float64 {
 		v, _ := strconv.ParseFloat(strings.Replace(s, ",", ".", 1), 64)
@@ -1503,6 +1503,7 @@ func main() {
 
 // keep net/url imported for future query building without churn
 var _ = url.Values{}
+
 
 
 
